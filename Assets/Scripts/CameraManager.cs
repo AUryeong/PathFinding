@@ -1,10 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class CameraManager : MonoBehaviour
+public class CameraManager : SingletonBehavior<CameraManager>
 {
-    public Camera cam;
+    [FormerlySerializedAs("cam")]
+    public Camera mainCamera;
+
+    public RectInt screenRectInt;
     public Rect screenRect;
 
     private Vector3 prevMousePosition;
@@ -12,45 +14,56 @@ public class CameraManager : MonoBehaviour
     private const float CAMERA_ZOOM_VALUE = 1;
     private const float CAMERA_MIN_SIZE = 1;
     private const float CAMERA_MAX_SIZE = 30;
-    
-    private void Awake()
+
+    protected override void Awake()
     {
-        if (cam == null)
-            cam = Camera.main;
+        if (mainCamera == null)
+            mainCamera = Camera.main;
 
         UpdateScreenRect();
+        NodeManager.Instance.Init();
     }
 
     private void UpdateScreenRect()
     {
-        float screenY = cam.orthographicSize * 2;
-        screenRect.size = new Vector2(screenY * Screen.width / Screen.height, screenY);
-        screenRect.position = new Vector2(cam.transform.position.x - screenRect.width / 2, cam.transform.position.y - screenRect.height / 2);
+        float sizeY = mainCamera.orthographicSize * 2;
+        float sizeX = sizeY * Screen.width / Screen.height;
+
+        float posX = mainCamera.transform.position.x - sizeX / 2;
+        float posY = mainCamera.transform.position.y - sizeY / 2;
+
+        screenRect.Set(posX, posY, sizeX, sizeY);
+
+        screenRectInt.size = new Vector2Int(Mathf.FloorToInt(sizeX), Mathf.CeilToInt(sizeY));
+        screenRectInt.position = new Vector2Int(Mathf.FloorToInt(posX), Mathf.CeilToInt(posY));
+
+        NodeManager.Instance.UpdateNodeByCamera();
     }
 
     private void Update()
     {
-        UpdateCameraPos();
-        UpdateCameraZoom();
+        CheckMoveCameraPos();
+        CheckCameraZoom();
     }
 
-    private void UpdateCameraZoom()
+
+    private void CheckCameraZoom()
     {
         if (Input.mouseScrollDelta.y == 0) return;
 
-        cam.orthographicSize = Mathf.Clamp(cam.orthographicSize - Input.mouseScrollDelta.y * CAMERA_ZOOM_VALUE, CAMERA_MIN_SIZE, CAMERA_MAX_SIZE);
+        mainCamera.orthographicSize = Mathf.Clamp(mainCamera.orthographicSize - Input.mouseScrollDelta.y * CAMERA_ZOOM_VALUE, CAMERA_MIN_SIZE, CAMERA_MAX_SIZE);
         UpdateScreenRect();
     }
 
-    private void UpdateCameraPos()
+    private void CheckMoveCameraPos()
     {
         if (!Input.GetMouseButton(2)) return;
         if (Input.GetMouseButtonDown(2))
-            prevMousePosition = cam.ScreenToWorldPoint(Input.mousePosition);
+            prevMousePosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
 
         if (Input.GetAxis("Mouse X") == 0 && Input.GetAxis("Mouse Y") == 0) return;
 
-        cam.transform.position -= cam.ScreenToWorldPoint(Input.mousePosition) - prevMousePosition;
+        mainCamera.transform.position -= mainCamera.ScreenToWorldPoint(Input.mousePosition) - prevMousePosition;
         UpdateScreenRect();
     }
 }
