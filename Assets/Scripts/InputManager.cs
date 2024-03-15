@@ -13,8 +13,14 @@ public class InputManager : SingletonBehavior<InputManager>
     [SerializeField] private Button[] paletteButtons;
 
     [Header("Right UI")]
-    [SerializeField] private Button resetButton; 
-    [SerializeField] private Button startButton; 
+    private PathFinding[] pathFindings = new PathFinding[]
+    {
+        new PathFindingBFS()
+    };
+    [SerializeField] private List<Toggle> pathFindingToggles;
+    [Space(10f)]
+    [SerializeField] private Button resetButton;
+    [SerializeField] private Button startButton;
 
     protected override void Awake()
     {
@@ -27,10 +33,23 @@ public class InputManager : SingletonBehavior<InputManager>
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(() => ChangePalette(paletteType));
         }
-        
+
+        for (int i = 0; i < pathFindingToggles.Count; i++)
+        {
+            int index = i;
+            Toggle toggle = pathFindingToggles[i];
+            toggle.onValueChanged.RemoveAllListeners();
+            toggle.onValueChanged.AddListener((value) =>
+            {
+                if (value)
+                    ChangePathFinding(index);
+            });
+        }
+        pathFindingToggles[0].isOn = true;
+
         resetButton.onClick.RemoveAllListeners();
         resetButton.onClick.AddListener(NodeManager.Instance.ResetNodeState);
-        
+
         startButton.onClick.RemoveAllListeners();
         startButton.onClick.AddListener(StartPathFinding);
     }
@@ -38,6 +57,11 @@ public class InputManager : SingletonBehavior<InputManager>
     private void ChangePalette(NodeType nodeType)
     {
         selectNodeType = nodeType;
+    }
+
+    private void ChangePathFinding(int index)
+    {
+        selectPathFinding = pathFindings[index];
     }
 
     private void StartPathFinding()
@@ -58,7 +82,7 @@ public class InputManager : SingletonBehavior<InputManager>
         if (!Input.GetMouseButton(0)) return;
         if (Input.GetMouseButtonDown(0))
             drewNodeObjects.Clear();
-        
+
         var vector = CameraManager.Instance.mainCamera.ScreenToWorldPoint(Input.mousePosition);
         var rect = NodeManager.Instance.lastRect;
         int x = Mathf.RoundToInt(vector.x) - rect.x + 1;

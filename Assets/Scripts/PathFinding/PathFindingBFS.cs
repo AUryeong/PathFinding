@@ -4,6 +4,7 @@ public class PathFindingBFS : PathFinding
 {
     public override void StartPathFinding(NodeObject startNodeData, NodeObject endNodeData, List<List<NodeObject>> nodeGraph)
     {
+        var pos = startNodeData.NodeData.pos;
         
     }
 }

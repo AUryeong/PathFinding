@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 public class NodeData
 {
     public NodeType nodeType = NodeType.None;
     public NodeStateType stateType = NodeStateType.None;
-    public int x;
-    public int y;
+    public Vector2Int pos;
 }
 
 public enum NodeType
@@ -38,6 +38,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
     [FormerlySerializedAs("endNodeObjectList")]
     [HideInInspector] public NodeObject endNodeObject;
     [HideInInspector] public List<NodeObject> startNodeObjetList = new();
+
 
     public RectInt lastRect;
 
@@ -106,8 +107,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
             {
                 var nodeData = new NodeData()
                 {
-                    y = i,
-                    x = j
+                    pos = new Vector2Int(j, i)
                 };
                 nodeGraph[i, j] = nodeData;
 
@@ -122,7 +122,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
 
     public NodeObject GetNodeObject(int x, int y)
     {
-       return nodeGraphObject[y][x];
+        return nodeGraphObject[y][x];
     }
 
     public void ResetNodeState()

@@ -12,7 +12,7 @@ public class NodeObject : MonoBehaviour
         set
         {
             nodeDataData = value;
-            text.text = $"{nodeDataData.x},{nodeDataData.y}";
+            text.text = $"{nodeDataData.pos.x},{nodeDataData.pos.y}";
         }
     }
     private NodeData nodeDataData;
