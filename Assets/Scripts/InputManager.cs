@@ -47,6 +47,9 @@ public class InputManager : SingletonBehavior<InputManager>
 
         pathFindingToggles[0].isOn = true;
 
+        resetButton.onClick.RemoveAllListeners();
+        resetButton.onClick.AddListener(ResetPathFinding);
+
         startButton.onClick.RemoveAllListeners();
         startButton.onClick.AddListener(StartPathFinding);
     }
@@ -59,6 +62,11 @@ public class InputManager : SingletonBehavior<InputManager>
     private void StartPathFinding()
     {
         NodeManager.Instance.StartPathFinding(selectPathFinding);
+    }
+
+    private void ResetPathFinding()
+    {
+        NodeManager.Instance.ResetPathFinding(selectPathFinding);
     }
     
     private void ChangePalette(NodeType nodeType)

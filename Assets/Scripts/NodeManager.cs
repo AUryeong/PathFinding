@@ -1,4 +1,3 @@
-using System.Text;
 using UnityEngine;
 
 public class NodeManager : SingletonBehavior<NodeManager>
@@ -77,10 +76,23 @@ public class NodeManager : SingletonBehavior<NodeManager>
         return graph.GetNodeData(x, y);
     }
 
-
     public void StartPathFinding(PathFinding selectPathFinding)
     {
-        Debug.Log($"{startNodePos} , {endNodePos}");
         selectPathFinding.StartPathFinding(graph, startNodePos, endNodePos).Forget();
+    }
+
+    public void ResetPathFinding(PathFinding selectPathFinding)
+    {
+        selectPathFinding.Stop();
+
+        for (int i = 1; i <= graph.Size.y; i++)
+        {
+            for (int j = 1; j <= graph.Size.x; j++)
+            {
+                graph.GetNodeData(j, i).stateType = NodeStateType.None;
+            }
+        }
+        
+        paintGraph.UpdatePaint();
     }
 }

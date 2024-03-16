@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -8,12 +9,21 @@ public class PathFindingBFS : PathFinding
     private Queue<Vector2Int> nodeDataQueue;
     private HashSet<NodeData> nodeDataHashSet;
 
+    public override void Stop()
+    {
+        base.Stop();
+        nodeGraph = null;
+        nodeDataHashSet.Clear();
+        nodeDataQueue.Clear();
+    }
+
     public override async UniTaskVoid StartPathFinding(Graph graph, Vector2Int startPos, Vector2Int endPos)
     {
         nodeGraph = graph;
-
-        nodeDataHashSet = new HashSet<NodeData>();
-        nodeDataQueue = new Queue<Vector2Int>();
+        
+        cancellation = new CancellationTokenSource();
+        nodeDataHashSet ??= new HashSet<NodeData>();
+        nodeDataQueue ??= new Queue<Vector2Int>();
 
         nodeDataQueue.Enqueue(startPos);
 
@@ -29,14 +39,12 @@ public class PathFindingBFS : PathFinding
             NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
 
             await CheckAndEnqueueNode(new Vector2Int(pos.x + 1, pos.y));
-            await CheckAndEnqueueNode(new Vector2Int(pos.x - 1, pos.y));
             await CheckAndEnqueueNode(new Vector2Int(pos.x, pos.y - 1));
+            await CheckAndEnqueueNode(new Vector2Int(pos.x - 1, pos.y));
             await CheckAndEnqueueNode(new Vector2Int(pos.x, pos.y + 1));
 
-            await UniTask.Delay(NodeManager.Instance.visitDelay);
+            await UniTask.Delay(NodeManager.Instance.visitDelay, cancellationToken:cancellation.Token);
         }
-
-        Debug.Log("Finish!");
     }
 
     private async UniTask CheckAndEnqueueNode(Vector2Int pos)
@@ -60,6 +68,6 @@ public class PathFindingBFS : PathFinding
 
         nodeDataQueue.Enqueue(pos);
 
-        await UniTask.Delay(NodeManager.Instance.discoveredDelay);
+        await UniTask.Delay(NodeManager.Instance.discoveredDelay, cancellationToken:cancellation.Token);
     }
 }
