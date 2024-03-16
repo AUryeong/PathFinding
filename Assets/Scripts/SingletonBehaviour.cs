@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SingletonBehavior<T> : MonoBehaviour where T : MonoBehaviour
+public abstract class SingletonBehavior<T> : MonoBehaviour where T : MonoBehaviour
 {
     private static T instance;
     public static T Instance
@@ -23,4 +23,6 @@ public class SingletonBehavior<T> : MonoBehaviour where T : MonoBehaviour
     {
         instance = this as T;
     }
+
+    public abstract void Init();
 }

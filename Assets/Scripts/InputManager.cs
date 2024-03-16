@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class InputManager : SingletonBehavior<InputManager>
 {
-    private readonly List<NodeObject> drewNodeObjects = new();
     private NodeType selectNodeType = NodeType.Wall;
     private PathFinding selectPathFinding;
 
@@ -13,18 +12,18 @@ public class InputManager : SingletonBehavior<InputManager>
     [SerializeField] private Button[] paletteButtons;
 
     [Header("Right UI")]
-    private PathFinding[] pathFindings = new PathFinding[]
+    private readonly PathFinding[] pathFindings = 
     {
         new PathFindingBFS()
     };
     [SerializeField] private List<Toggle> pathFindingToggles;
+    
     [Space(10f)]
     [SerializeField] private Button resetButton;
     [SerializeField] private Button startButton;
-
-    protected override void Awake()
+    
+    public override void Init()
     {
-        base.Awake();
         for (int i = 0; i < (int)NodeType.Finish; i++)
         {
             var button = paletteButtons[i];
@@ -45,18 +44,11 @@ public class InputManager : SingletonBehavior<InputManager>
                     ChangePathFinding(index);
             });
         }
-        pathFindingToggles[0].isOn = true;
 
-        resetButton.onClick.RemoveAllListeners();
-        resetButton.onClick.AddListener(NodeManager.Instance.ResetNodeState);
+        pathFindingToggles[0].isOn = true;
 
         startButton.onClick.RemoveAllListeners();
         startButton.onClick.AddListener(StartPathFinding);
-    }
-
-    private void ChangePalette(NodeType nodeType)
-    {
-        selectNodeType = nodeType;
     }
 
     private void ChangePathFinding(int index)
@@ -68,55 +60,43 @@ public class InputManager : SingletonBehavior<InputManager>
     {
         NodeManager.Instance.StartPathFinding(selectPathFinding);
     }
+    
+    private void ChangePalette(NodeType nodeType)
+    {
+        selectNodeType = nodeType;
+    }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (EventSystem.current.IsPointerOverGameObject()) return;
 
-        CheckDraw();
-        CheckErase();
+        if (Input.GetMouseButton(0))
+            SetNodeTypeByMouse(selectNodeType);
+        
+        if (Input.GetMouseButton(1))
+            SetNodeTypeByMouse(NodeType.None);
     }
 
-    private void CheckDraw()
+    private void SetNodeTypeByMouse(NodeType nodeType)
     {
-        if (!Input.GetMouseButton(0)) return;
-        if (Input.GetMouseButtonDown(0))
-            drewNodeObjects.Clear();
-
         var vector = CameraManager.Instance.mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        var rect = NodeManager.Instance.lastRect;
-        int x = Mathf.RoundToInt(vector.x) - rect.x + 1;
-        int y = Mathf.RoundToInt(vector.y) - rect.y + 1;
-        var nodeObject = NodeManager.Instance.GetNodeObject(x, y);
+        var pos = NodeManager.Instance.GetTilePosByWorldPoint(vector);
+        var nodeData = NodeManager.Instance.GetNodeData(pos.x, pos.y);
 
-        if (drewNodeObjects.Contains(nodeObject)) return;
+        if (nodeData.nodeType == nodeType) return;
 
-        if (selectNodeType == NodeType.Finish)
+        switch (nodeType)
         {
-            var startNode = NodeManager.Instance.endNodeObject;
-            if (startNode != null)
-                startNode.NodeType = NodeType.None;
+            case NodeType.Start:
+                NodeManager.Instance.startNodePos = pos;
+                break;
+            case NodeType.Finish:
+                NodeManager.Instance.endNodePos = pos;
+                break;
         }
-
-        nodeObject.NodeType = selectNodeType;
-        drewNodeObjects.Add(nodeObject);
+        
+        nodeData.nodeType = nodeType;
+        NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y);
     }
 
-    private void CheckErase()
-    {
-        if (!Input.GetMouseButton(1)) return;
-        if (Input.GetMouseButtonDown(1))
-            drewNodeObjects.Clear();
-
-        var vector = CameraManager.Instance.mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        var rect = NodeManager.Instance.lastRect;
-        int x = Mathf.RoundToInt(vector.x) - rect.x + 1;
-        int y = Mathf.RoundToInt(vector.y) - rect.y + 1;
-        var nodeObject = NodeManager.Instance.GetNodeObject(x, y);
-
-        if (drewNodeObjects.Contains(nodeObject)) return;
-
-        nodeObject.NodeType = NodeType.None;
-        drewNodeObjects.Add(nodeObject);
-    }
 }

@@ -5,9 +5,9 @@ public class CameraManager : SingletonBehavior<CameraManager>
 {
     [FormerlySerializedAs("cam")]
     public Camera mainCamera;
-
+    
     public RectInt screenRectInt;
-    public Rect screenRect;
+    [HideInInspector] public Rect screenRect;
 
     private Vector3 prevMousePosition;
 
@@ -17,11 +17,18 @@ public class CameraManager : SingletonBehavior<CameraManager>
 
     protected override void Awake()
     {
+        base.Awake();
+        Init();
+    }
+
+    public override void Init()
+    {
         if (mainCamera == null)
             mainCamera = Camera.main;
 
         UpdateScreenRect();
         NodeManager.Instance.Init();
+        InputManager.Instance.Init();
     }
 
     private void UpdateScreenRect()
@@ -36,8 +43,6 @@ public class CameraManager : SingletonBehavior<CameraManager>
 
         screenRectInt.size = new Vector2Int(Mathf.FloorToInt(sizeX), Mathf.CeilToInt(sizeY));
         screenRectInt.position = new Vector2Int(Mathf.FloorToInt(posX), Mathf.CeilToInt(posY));
-
-        NodeManager.Instance.UpdateNodeByCamera();
     }
 
     private void Update()

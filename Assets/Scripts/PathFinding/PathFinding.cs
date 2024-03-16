@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 public abstract class PathFinding
 {
-    public abstract void StartPathFinding(NodeObject startNodeData, NodeObject endNodeData, List<List<NodeObject>> nodeGraph);
+    public abstract UniTaskVoid StartPathFinding(Graph graph, Vector2Int startPos, Vector2Int endPos);
+
 }

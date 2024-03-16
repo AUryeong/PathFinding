@@ -1,0 +1,165 @@
+﻿using System;
+using UnityEngine;
+
+public class NodeData
+{
+    public NodeType nodeType = NodeType.None;
+    public NodeStateType stateType = NodeStateType.None;
+}
+
+public enum NodeType
+{
+    None,
+    Wall,
+    Start,
+    Finish
+}
+
+public enum NodeStateType
+{
+    None,
+    Discovered,
+    Visited
+}
+
+public enum AddType
+{
+    First,
+    Last
+}
+
+public class Graph // 앞 / 뒤 삽입이 자유로워야함
+{
+    private NodeData[][] nodeGraph;
+    private readonly ClassPool<NodeData> nodePool;
+
+    public int Capacity
+    {
+        get => nodeGraph.Length;
+        set
+        {
+            int beforeCapacity = Capacity;
+            if (value <= beforeCapacity) return;
+
+            var newNodeGraph = new NodeData[value][];
+            for (int index = 0; index < value; index++)
+                newNodeGraph[index] = new NodeData[value];
+
+            for (int i = 0; i < size.y; i++)
+            {
+                Array.Copy(nodeGraph[(startIndex.y+i) % Capacity], startIndex.x, newNodeGraph[i], 0, size.x - startIndex.x);
+                if (startIndex.x != 0)
+                    Array.Copy(nodeGraph[(startIndex.y+i) % Capacity], 0, newNodeGraph[i], size.x - startIndex.x, startIndex.x);
+            }
+
+            nodeGraph = newNodeGraph;
+
+            startIndex = Vector2Int.zero;
+
+            endIndex.x = Mathf.Min(beforeCapacity, size.x);
+            endIndex.y = Mathf.Min(beforeCapacity, size.y);
+
+            nodePool.CreatePoolObject(value * value - beforeCapacity * beforeCapacity);
+            
+            Debug.Log("New Capacity");
+        }
+    }
+
+    public Vector2Int Size => size;
+    private Vector2Int size;
+    private Vector2Int startIndex;
+    private Vector2Int endIndex;
+
+    public Graph(int capacity)
+    {
+        nodeGraph = new NodeData[capacity][];
+        for (int index = 0; index < capacity; index++)
+            nodeGraph[index] = new NodeData[capacity];
+
+        startIndex = Vector2Int.zero;
+        endIndex = Vector2Int.zero;
+
+        nodePool = new ClassPool<NodeData>()
+            .CreatePoolObject(capacity * capacity);
+        Capacity = capacity;
+    }
+
+    public void FillAll()
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            for (int j = 0; j < 20; j++)
+            {
+                nodeGraph[i][j] = nodePool.PopPool();
+            }
+        }
+
+        size.x = 20;
+        size.y = 20;
+    }
+
+    public NodeData GetNodeData(int x, int y)
+    {
+        return nodeGraph[(y-1 + startIndex.y) % Capacity][(x-1 + startIndex.x) % Capacity];
+    }
+
+    public void AddX(AddType type)
+    {
+        if (size.x >= Capacity)
+            Capacity *= 2;
+
+        switch (type)
+        {
+            case AddType.First:
+            {
+                startIndex.x = startIndex.x - 1 < 0 ? Capacity - 1 : startIndex.x - 1;
+                for (int i = 0; i < size.y; i++)
+                    nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodePool.PopPool();
+
+                break;
+            }
+            case AddType.Last:
+            {
+                for (int i = 0; i < size.y; i++)
+                    nodeGraph[(i + startIndex.y) % Capacity][endIndex.x] = nodePool.PopPool();
+
+                endIndex.x = (endIndex.x + 1) % Capacity;
+                break;
+            }
+            default:
+                return;
+        }
+
+        size.x++;
+    }
+
+    public void AddY(AddType type)
+    {
+        if (size.y >= Capacity)
+            Capacity *= 2;
+
+        switch (type)
+        {
+            case AddType.First:
+            {
+                startIndex.y = startIndex.y - 1 < 0 ? Capacity - 1 : startIndex.y - 1;
+                for (int i = 0; i < size.x; i++)
+                    nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
+
+                break;
+            }
+            case AddType.Last:
+            {
+                for (int i = 0; i < size.x; i++)
+                    nodeGraph[endIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
+
+                endIndex.y = (endIndex.y + 1) % Capacity;
+                break;
+            }
+            default:
+                return;
+        }
+
+        size.y++;
+    }
+}
