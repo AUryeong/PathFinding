@@ -12,7 +12,7 @@ public enum NodeType
     None,
     Wall,
     Start,
-    Finish
+    End
 }
 
 public enum NodeStateType
@@ -28,7 +28,7 @@ public enum AddType
     Last
 }
 
-public class Graph // 앞 / 뒤 삽입이 자유로워야함
+public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
 {
     private NodeData[][] nodeGraph;
     private readonly ClassPool<NodeData> nodePool;

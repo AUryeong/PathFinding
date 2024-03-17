@@ -98,7 +98,7 @@ public class PaintGraph : MonoBehaviour
             case NodeType.Start:
                 SetUV(startIndex, 1, 1);
                 break;
-            case NodeType.Finish:
+            case NodeType.End:
                 SetUV(startIndex, 0, 2);
                 break;
             default:

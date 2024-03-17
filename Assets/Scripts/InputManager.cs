@@ -28,7 +28,7 @@ public class InputManager : SingletonBehavior<InputManager>
     
     public override void Init()
     {
-        for (int i = 0; i < (int)NodeType.Finish; i++)
+        for (int i = 0; i < (int)NodeType.End; i++)
         {
             var button = paletteButtons[i];
             var paletteType = (NodeType)(i + 1);
@@ -43,8 +43,6 @@ public class InputManager : SingletonBehavior<InputManager>
             var toggle = Instantiate(pathFindingToggle, pathFindingToggle.transform.parent);
             
             toggle.gameObject.SetActive(true);
-            if (index == 0)
-                toggle.isOn = true;
             
             toggle.GetComponentInChildren<TextMeshProUGUI>().text = pathFindings[i].Name;
             
@@ -54,6 +52,9 @@ public class InputManager : SingletonBehavior<InputManager>
                 if (value)
                     ChangePathFinding(index);
             });
+            
+            if (index == 0)
+                toggle.isOn = true;
         }
 
         resetButton.onClick.RemoveAllListeners();
@@ -87,8 +88,6 @@ public class InputManager : SingletonBehavior<InputManager>
 
     private void ResetPathFinding()
     {
-        if (!NodeManager.Instance.isPathFinding) return;
-
         NodeManager.Instance.ResetPathFinding(selectPathFinding);
     }
     
@@ -133,10 +132,26 @@ public class InputManager : SingletonBehavior<InputManager>
         switch (nodeType)
         {
             case NodeType.Start:
+                if (NodeManager.Instance.startNodeData != null)
+                {
+                    var prevPos = NodeManager.Instance.startNodePos;
+                    var prevData = NodeManager.Instance.startNodeData;
+                    prevData.nodeType = NodeType.None;
+                    NodeManager.Instance.paintGraph.UpdateUV(prevPos.x, prevPos.y, prevData);
+                }
                 NodeManager.Instance.startNodePos = pos;
+                NodeManager.Instance.startNodeData = nodeData;
                 break;
-            case NodeType.Finish:
+            case NodeType.End:
+                if (NodeManager.Instance.endNodeData != null)
+                {
+                    var prevPos = NodeManager.Instance.endNodePos;
+                    var prevData = NodeManager.Instance.endNodeData;
+                    prevData.nodeType = NodeType.None;
+                    NodeManager.Instance.paintGraph.UpdateUV(prevPos.x, prevPos.y, prevData);
+                }
                 NodeManager.Instance.endNodePos = pos;
+                NodeManager.Instance.endNodeData = nodeData;
                 break;
         }
         

@@ -3,7 +3,10 @@ using UnityEngine;
 public class NodeManager : SingletonBehavior<NodeManager>
 {
     [HideInInspector] public Vector2Int startNodePos;
+    [HideInInspector] public NodeData startNodeData;
+    
     [HideInInspector] public Vector2Int endNodePos;
+    [HideInInspector] public NodeData endNodeData;
 
     public PaintGraph paintGraph;
 

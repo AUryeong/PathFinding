@@ -11,7 +11,9 @@ public class ClassPool<T> where T : class, new()
 
     public ClassPool<T> CreatePoolObject(int count = 0)
     {
-        for (int i = 0; i < count; i++)
+        if (poolableQueue.Count >= count) return this;
+
+        for (int i = 0; i < count - poolableQueue.Count; i++)
             poolableQueue.Push(new T());
 
         return this;
