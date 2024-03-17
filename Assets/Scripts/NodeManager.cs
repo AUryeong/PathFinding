@@ -4,7 +4,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
 {
     [HideInInspector] public Vector2Int startNodePos;
     [HideInInspector] public NodeData startNodeData;
-    
+
     [HideInInspector] public Vector2Int endNodePos;
     [HideInInspector] public NodeData endNodeData;
 
@@ -30,7 +30,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
 
         paintGraph.Init(graph);
         paintGraph.UpdatePaint();
-        
+
         UpdateNodeByCamera();
     }
 
@@ -70,7 +70,8 @@ public class NodeManager : SingletonBehavior<NodeManager>
 
     public void ResetPathFinding(PathFinding selectPathFinding)
     {
-        selectPathFinding.Stop();
+        if (isPathFinding)
+            selectPathFinding.Stop();
 
         for (int i = 0; i < graph.Size.y; i++)
         {

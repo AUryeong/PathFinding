@@ -13,8 +13,11 @@ public abstract class PathFinding
 
     public virtual void Stop()
     {
-        cancellation?.Cancel();
-        cancellation?.Dispose();
+        if (cancellation != null)
+        {
+            cancellation.Cancel();
+            cancellation.Dispose();
+        }
 
         NodeManager.Instance.isPathFinding = false;
     }
