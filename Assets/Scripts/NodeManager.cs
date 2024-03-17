@@ -5,79 +5,63 @@ public class NodeManager : SingletonBehavior<NodeManager>
     [HideInInspector] public Vector2Int startNodePos;
     [HideInInspector] public Vector2Int endNodePos;
 
-    private RectInt lastRect;
+    public PaintGraph paintGraph;
+
+    [Header("Value")]
+    public bool isPathFinding;
 
     public Graph graph;
-    public PaintGraph paintGraph;
 
     public int visitDelay;
     public int discoveredDelay;
 
+    private const int NODE_CREATE_RANGE = 2;
+
     public override void Init()
     {
+        isPathFinding = false;
+
         var rect = CameraManager.Instance.screenRectInt;
         graph = new Graph(Mathf.Max(rect.width + 13, rect.height + 13));
         graph.FillAll();
 
-        paintGraph.Init();
+        paintGraph.Init(graph);
         paintGraph.UpdatePaint();
-
-        lastRect = rect;
+        
+        UpdateNodeByCamera();
     }
-
-    #region Prev
 
     public void UpdateNodeByCamera()
     {
-        var cameraManager = CameraManager.Instance;
-        if (lastRect.Equals(cameraManager.screenRectInt)) return;
+        var rectInt = CameraManager.Instance.screenRectInt;
+        var prevGraphSize = graph.Size;
 
-        var sizeX = graph.Size.x / 2;
-        var sizeY = graph.Size.y / 2;
+        for (int i = 0; i < graph.StartPos.x - rectInt.x + NODE_CREATE_RANGE; i++)
+            graph.AddX(AddType.First);
 
-        var newRectInt = cameraManager.screenRectInt;
+        for (int i = 0; i < rectInt.x + rectInt.width - (graph.StartPos.x + graph.Size.x) + NODE_CREATE_RANGE; i++)
+            graph.AddX(AddType.Last);
 
-        int countX = Mathf.Abs(newRectInt.x) - sizeX + 1;
-        if (countX > 0)
-        {
-            for (int i = 0; i < countX; i++)
-            {
-                graph.AddX(AddType.First);
-            }
+        for (int i = 0; i < graph.StartPos.y - rectInt.y + NODE_CREATE_RANGE; i++)
+            graph.AddY(AddType.First);
 
+        for (int i = 0; i < rectInt.y + rectInt.height - (graph.StartPos.y + graph.Size.y) + NODE_CREATE_RANGE; i++)
+            graph.AddY(AddType.Last);
+
+        if (!prevGraphSize.Equals(graph.Size))
             paintGraph.UpdatePaint();
-            return;
-        }
-
-        countX = newRectInt.x + newRectInt.width - sizeX + 2;
-        if (countX > 0)
-        {
-            for (int i = 0; i < countX; i++)
-            {
-                graph.AddX(AddType.Last);
-            }
-
-            paintGraph.UpdatePaint();
-            return;
-        }
     }
-
-    #endregion
 
     public Vector2Int GetTilePosByWorldPoint(Vector3 pos)
     {
-        int x = Mathf.RoundToInt(pos.x + graph.Size.x / 2f + 0.5f);
-        int y = Mathf.RoundToInt(pos.y + graph.Size.y / 2f + 0.5f);
+        int x = Mathf.RoundToInt(pos.x - 0.5f);
+        int y = Mathf.RoundToInt(pos.y - 0.5f);
         return new Vector2Int(x, y);
-    }
-
-    public NodeData GetNodeData(int x, int y)
-    {
-        return graph.GetNodeData(x, y);
     }
 
     public void StartPathFinding(PathFinding selectPathFinding)
     {
+        isPathFinding = true;
         selectPathFinding.StartPathFinding(graph, startNodePos, endNodePos).Forget();
     }
 
@@ -85,14 +69,15 @@ public class NodeManager : SingletonBehavior<NodeManager>
     {
         selectPathFinding.Stop();
 
-        for (int i = 1; i <= graph.Size.y; i++)
+        for (int i = 0; i < graph.Size.y; i++)
         {
-            for (int j = 1; j <= graph.Size.x; j++)
+            for (int j = 0; j < graph.Size.x; j++)
             {
-                graph.GetNodeData(j, i).stateType = NodeStateType.None;
+                graph.GetNodeData(j + graph.StartPos.x, i + graph.StartPos.y).stateType = NodeStateType.None;
             }
         }
-        
+
         paintGraph.UpdatePaint();
+        isPathFinding = false;
     }
 }

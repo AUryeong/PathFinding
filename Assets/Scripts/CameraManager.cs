@@ -5,15 +5,17 @@ public class CameraManager : SingletonBehavior<CameraManager>
 {
     [FormerlySerializedAs("cam")]
     public Camera mainCamera;
-    
+
     public RectInt screenRectInt;
     [HideInInspector] public Rect screenRect;
 
     private Vector3 prevMousePosition;
 
     private const float CAMERA_ZOOM_VALUE = 1;
+    private const int CAMERA_POS_RANGE = 25;
+
     private const float CAMERA_MIN_SIZE = 1;
-    private const float CAMERA_MAX_SIZE = 30;
+    private const float CAMERA_MAX_SIZE = 15;
 
     protected override void Awake()
     {
@@ -58,6 +60,7 @@ public class CameraManager : SingletonBehavior<CameraManager>
 
         mainCamera.orthographicSize = Mathf.Clamp(mainCamera.orthographicSize - Input.mouseScrollDelta.y * CAMERA_ZOOM_VALUE, CAMERA_MIN_SIZE, CAMERA_MAX_SIZE);
         UpdateScreenRect();
+        NodeManager.Instance.UpdateNodeByCamera();
     }
 
     private void CheckMoveCameraPos()
@@ -69,6 +72,11 @@ public class CameraManager : SingletonBehavior<CameraManager>
         if (Input.GetAxis("Mouse X") == 0 && Input.GetAxis("Mouse Y") == 0) return;
 
         mainCamera.transform.position -= mainCamera.ScreenToWorldPoint(Input.mousePosition) - prevMousePosition;
+        mainCamera.transform.position = new Vector3(
+            Mathf.Clamp(mainCamera.transform.position.x, -CAMERA_POS_RANGE, CAMERA_POS_RANGE),
+            Mathf.Clamp(mainCamera.transform.position.y, -CAMERA_POS_RANGE, CAMERA_POS_RANGE),
+            -10);
         UpdateScreenRect();
+        NodeManager.Instance.UpdateNodeByCamera();
     }
 }

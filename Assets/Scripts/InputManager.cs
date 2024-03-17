@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,11 +13,14 @@ public class InputManager : SingletonBehavior<InputManager>
     [SerializeField] private Button[] paletteButtons;
 
     [Header("Right UI")]
+    [SerializeField] private Toggle pathFindingToggle;
     private readonly PathFinding[] pathFindings = 
     {
         new PathFindingBFS()
     };
-    [SerializeField] private List<Toggle> pathFindingToggles;
+
+    [SerializeField] private TMP_InputField discoveryDelayInput;
+    [SerializeField] private TMP_InputField visitDelayInput;
     
     [Space(10f)]
     [SerializeField] private Button resetButton;
@@ -33,10 +37,17 @@ public class InputManager : SingletonBehavior<InputManager>
             button.onClick.AddListener(() => ChangePalette(paletteType));
         }
 
-        for (int i = 0; i < pathFindingToggles.Count; i++)
+        for (int i = 0; i < pathFindings.Length; i++)
         {
             int index = i;
-            Toggle toggle = pathFindingToggles[i];
+            var toggle = Instantiate(pathFindingToggle, pathFindingToggle.transform.parent);
+            
+            toggle.gameObject.SetActive(true);
+            if (index == 0)
+                toggle.isOn = true;
+            
+            toggle.GetComponentInChildren<TextMeshProUGUI>().text = pathFindings[i].Name;
+            
             toggle.onValueChanged.RemoveAllListeners();
             toggle.onValueChanged.AddListener((value) =>
             {
@@ -45,27 +56,39 @@ public class InputManager : SingletonBehavior<InputManager>
             });
         }
 
-        pathFindingToggles[0].isOn = true;
-
         resetButton.onClick.RemoveAllListeners();
         resetButton.onClick.AddListener(ResetPathFinding);
 
         startButton.onClick.RemoveAllListeners();
         startButton.onClick.AddListener(StartPathFinding);
+
+        discoveryDelayInput.text = NodeManager.Instance.discoveredDelay.ToString();
+        discoveryDelayInput.onValueChanged.RemoveAllListeners();
+        discoveryDelayInput.onValueChanged.AddListener(ChangeDiscoveredDelay);
+        
+        visitDelayInput.text = NodeManager.Instance.visitDelay.ToString();
+        visitDelayInput.onValueChanged.RemoveAllListeners();
+        visitDelayInput.onValueChanged.AddListener(ChangeVisitDelay);
     }
 
     private void ChangePathFinding(int index)
     {
+        if (NodeManager.Instance.isPathFinding) return;
+        
         selectPathFinding = pathFindings[index];
     }
 
     private void StartPathFinding()
     {
+        if (NodeManager.Instance.isPathFinding) return;
+
         NodeManager.Instance.StartPathFinding(selectPathFinding);
     }
 
     private void ResetPathFinding()
     {
+        if (!NodeManager.Instance.isPathFinding) return;
+
         NodeManager.Instance.ResetPathFinding(selectPathFinding);
     }
     
@@ -74,9 +97,22 @@ public class InputManager : SingletonBehavior<InputManager>
         selectNodeType = nodeType;
     }
 
+    private void ChangeDiscoveredDelay(string text)
+    {
+        int delay = int.Parse(text);
+        NodeManager.Instance.discoveredDelay = delay;
+    }
+
+    private void ChangeVisitDelay(string text)
+    {
+        int delay = int.Parse(text);
+        NodeManager.Instance.visitDelay = delay;
+    }
+
     private void FixedUpdate()
     {
         if (EventSystem.current.IsPointerOverGameObject()) return;
+        if (NodeManager.Instance.isPathFinding) return;
 
         if (Input.GetMouseButton(0))
             SetNodeTypeByMouse(selectNodeType);
@@ -89,8 +125,9 @@ public class InputManager : SingletonBehavior<InputManager>
     {
         var vector = CameraManager.Instance.mainCamera.ScreenToWorldPoint(Input.mousePosition);
         var pos = NodeManager.Instance.GetTilePosByWorldPoint(vector);
-        var nodeData = NodeManager.Instance.GetNodeData(pos.x, pos.y);
+        var nodeData = NodeManager.Instance.graph.GetNodeData(pos.x, pos.y);
 
+        if (nodeData == null) return;
         if (nodeData.nodeType == nodeType) return;
 
         switch (nodeType)

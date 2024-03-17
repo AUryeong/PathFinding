@@ -1,8 +1,9 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PaintGraph : MonoBehaviour
 {
+    private Graph graph;
+
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
     private Mesh mesh;
@@ -12,8 +13,10 @@ public class PaintGraph : MonoBehaviour
 
     private const int TILE_SIZE = 1;
 
-    public void Init()
+    public void Init(Graph nodeGraph)
     {
+        graph = nodeGraph;
+
         meshFilter = GetComponent<MeshFilter>();
         meshRenderer = GetComponent<MeshRenderer>();
         mesh = new Mesh();
@@ -25,9 +28,7 @@ public class PaintGraph : MonoBehaviour
 
     public void UpdateUV(int x, int y, NodeData nodeData = null) // 특정 타일 위치만 색깔 다시 그리기
     {
-        var graph = NodeManager.Instance.graph;
-
-        int index = ((y - 1) * graph.Size.x + (x - 1)) * 4; // 사용의 편의성을 위해 -1 해주는거 넣기
+        int index = ((y - graph.StartPos.y) * graph.Size.x + (x - graph.StartPos.x)) * 4; // 사용의 편의성을 위해 -1 해주는거 넣기
         nodeData ??= graph.GetNodeData(x, y);
         SetUV(index, nodeData);
 
@@ -36,12 +37,11 @@ public class PaintGraph : MonoBehaviour
 
     public void UpdatePaint() // 타일 길이 변경에 따른 다시 그리기
     {
-        var graph = NodeManager.Instance.graph;
-
         int width = graph.Size.x;
         int height = graph.Size.y;
 
-        var pos = new Vector2(-width * TILE_SIZE / 2f, -height * TILE_SIZE / 2f);
+        Vector2Int graphStartPos = graph.StartPos;
+        var pos = new Vector2(graphStartPos.x * TILE_SIZE, graphStartPos.y * TILE_SIZE);
 
         int tileCount = width * height;
 
@@ -54,13 +54,13 @@ public class PaintGraph : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 int index = (y * width + x) * 4;
-                var nodeData = graph.GetNodeData(x+1, y+1);
+                var nodeData = graph.GetNodeData(x + graphStartPos.x, y + graphStartPos.y);
 
                 verticals[index + 0] = new Vector3(TILE_SIZE * x + pos.x, TILE_SIZE * y + pos.y);
                 verticals[index + 1] = new Vector3(TILE_SIZE * x + pos.x, TILE_SIZE * (y + 1) + pos.y);
                 verticals[index + 2] = new Vector3(TILE_SIZE * (x + 1) + pos.x, TILE_SIZE * (y + 1) + pos.y);
                 verticals[index + 3] = new Vector3(TILE_SIZE * (x + 1) + pos.x, TILE_SIZE * y + pos.y);
-                
+
                 SetUV(index, nodeData);
 
                 int trianglesIndex = (y * width + x) * 6;
@@ -81,15 +81,15 @@ public class PaintGraph : MonoBehaviour
 
         meshFilter.mesh = mesh;
     }
-    
-    private void SetUV(int startIndex, NodeData nodeData)
+
+    private void SetUV(int startIndex, NodeData nodeData) // UV는 여러곳에서도 쓰고 길기도 하니 따로 뺐음
     {
         if (nodeData == null)
         {
             SetUV(startIndex, 0, 2);
             return;
         }
-        
+
         switch (nodeData.nodeType)
         {
             case NodeType.Wall:

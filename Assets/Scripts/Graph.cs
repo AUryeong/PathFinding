@@ -47,9 +47,9 @@ public class Graph // 앞 / 뒤 삽입이 자유로워야함
 
             for (int i = 0; i < size.y; i++)
             {
-                Array.Copy(nodeGraph[(startIndex.y+i) % Capacity], startIndex.x, newNodeGraph[i], 0, size.x - startIndex.x);
+                Array.Copy(nodeGraph[(startIndex.y + i) % Capacity], startIndex.x, newNodeGraph[i], 0, size.x - startIndex.x);
                 if (startIndex.x != 0)
-                    Array.Copy(nodeGraph[(startIndex.y+i) % Capacity], 0, newNodeGraph[i], size.x - startIndex.x, startIndex.x);
+                    Array.Copy(nodeGraph[(startIndex.y + i) % Capacity], 0, newNodeGraph[i], size.x - startIndex.x, startIndex.x);
             }
 
             nodeGraph = newNodeGraph;
@@ -60,13 +60,15 @@ public class Graph // 앞 / 뒤 삽입이 자유로워야함
             endIndex.y = Mathf.Min(beforeCapacity, size.y);
 
             nodePool.CreatePoolObject(value * value - beforeCapacity * beforeCapacity);
-            
-            Debug.Log("New Capacity");
         }
     }
 
     public Vector2Int Size => size;
     private Vector2Int size;
+
+    public Vector2Int StartPos => startPos;
+    private Vector2Int startPos;
+
     private Vector2Int startIndex;
     private Vector2Int endIndex;
 
@@ -78,6 +80,7 @@ public class Graph // 앞 / 뒤 삽입이 자유로워야함
 
         startIndex = Vector2Int.zero;
         endIndex = Vector2Int.zero;
+        startPos = Vector2Int.zero;
 
         nodePool = new ClassPool<NodeData>()
             .CreatePoolObject(capacity * capacity);
@@ -86,21 +89,35 @@ public class Graph // 앞 / 뒤 삽입이 자유로워야함
 
     public void FillAll()
     {
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < Capacity; i++)
         {
-            for (int j = 0; j < 20; j++)
+            for (int j = 0; j < Capacity; j++)
             {
                 nodeGraph[i][j] = nodePool.PopPool();
             }
         }
 
-        size.x = 20;
-        size.y = 20;
+        startPos.x = -Mathf.CeilToInt(Capacity / 2f);
+        startPos.y = -Mathf.CeilToInt(Capacity / 2f);
+
+        size.x = Capacity;
+        size.y = Capacity;
+    }
+
+    public bool IsContainsPos(Vector2Int pos)
+    {
+        if (pos.x >= size.x + startPos.x || pos.x < startPos.x)
+            return false;
+
+        if (pos.y >= size.y + startPos.y || pos.y < startPos.y)
+            return false;
+
+        return true;
     }
 
     public NodeData GetNodeData(int x, int y)
     {
-        return nodeGraph[(y-1 + startIndex.y) % Capacity][(x-1 + startIndex.x) % Capacity];
+        return nodeGraph[(y + startIndex.y - startPos.y) % Capacity][(x + startIndex.x - startPos.x) % Capacity];
     }
 
     public void AddX(AddType type)
@@ -116,6 +133,7 @@ public class Graph // 앞 / 뒤 삽입이 자유로워야함
                 for (int i = 0; i < size.y; i++)
                     nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodePool.PopPool();
 
+                startPos.x--;
                 break;
             }
             case AddType.Last:
@@ -146,6 +164,7 @@ public class Graph // 앞 / 뒤 삽입이 자유로워야함
                 for (int i = 0; i < size.x; i++)
                     nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
 
+                startPos.y--;
                 break;
             }
             case AddType.Last:
