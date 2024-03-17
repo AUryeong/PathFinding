@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class PaintGraph : MonoBehaviour
 {
@@ -8,8 +9,12 @@ public class PaintGraph : MonoBehaviour
     private MeshRenderer meshRenderer;
     private Mesh mesh;
 
-    private Vector2[] uv; // 타일 변동을 위한 uv 저장
+    private Vector3[] verticals;
+    private Vector2[] uvs; // 타일 변동을 위한 uv 저장
+    private int[] triangles;
     private Vector2 textureSize;
+
+    private RectInt screenRectInt;
 
     private const int TILE_SIZE = 1;
 
@@ -32,38 +37,70 @@ public class PaintGraph : MonoBehaviour
         nodeData ??= graph.GetNodeData(x, y);
         SetUV(index, nodeData);
 
-        mesh.uv = uv;
+        mesh.uv = uvs;
     }
 
     public void UpdatePaint() // 타일 길이 변경에 따른 다시 그리기
     {
-        int width = graph.Size.x;
-        int height = graph.Size.y;
+        var newScreenRectInt = CameraManager.Instance.screenRectInt;
+
+        int width = newScreenRectInt.width;
+        int height = newScreenRectInt.height;
+
+        int createCountX = width - screenRectInt.width;
+        int createCountY = height - screenRectInt.height;
 
         Vector2Int graphStartPos = graph.StartPos;
-        var pos = new Vector2(graphStartPos.x * TILE_SIZE, graphStartPos.y * TILE_SIZE);
 
         int tileCount = width * height;
+        int startIndex = 0;
+        int startTrianglesIndex = 0;
 
-        var verticals = new Vector3[4 * tileCount];
-        var triangles = new int[6 * tileCount];
-        uv = new Vector2[4 * tileCount];
+        if (createCountX > 0 || createCountY > 0)
+        {
+            var prevVerticals = verticals;
+            var prevUvs = uvs;
+            var prevTriangles = triangles;
+
+            verticals = new Vector3[4 * tileCount];
+            uvs = new Vector2[4 * tileCount];
+            triangles = new int[6 * tileCount];
+
+            if (prevVerticals != null)
+            {
+                startIndex = prevVerticals.Length;
+                startTrianglesIndex = prevTriangles.Length;
+
+                Array.Copy(prevVerticals, 0, verticals, 0, prevVerticals.Length);
+                Array.Copy(prevUvs, 0, uvs, 0, prevUvs.Length);
+                Array.Copy(prevTriangles, 0, triangles, 0, prevTriangles.Length);
+            }
+        }
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                int index = (y * width + x) * 4;
+                if (y < screenRectInt.height && x < screenRectInt.width) continue;
+                int index = (y * createCountX + x) * 4 + startIndex;
                 var nodeData = graph.GetNodeData(x + graphStartPos.x, y + graphStartPos.y);
 
-                verticals[index + 0] = new Vector3(TILE_SIZE * x + pos.x, TILE_SIZE * y + pos.y);
-                verticals[index + 1] = new Vector3(TILE_SIZE * x + pos.x, TILE_SIZE * (y + 1) + pos.y);
-                verticals[index + 2] = new Vector3(TILE_SIZE * (x + 1) + pos.x, TILE_SIZE * (y + 1) + pos.y);
-                verticals[index + 3] = new Vector3(TILE_SIZE * (x + 1) + pos.x, TILE_SIZE * y + pos.y);
+                int up = y + 1;
+                int right = x + 1;
+
+                if (verticals.Length <= index)
+                {
+                    Debug.Log($"{index} , {tileCount} , {startIndex} , {createCountY}, {createCountX}");
+                }
+
+                verticals[index + 0] = new Vector3(x, y);
+                verticals[index + 1] = new Vector3(x, up);
+                verticals[index + 2] = new Vector3(right, up);
+                verticals[index + 3] = new Vector3(right, y);
 
                 SetUV(index, nodeData);
 
-                int trianglesIndex = (y * width + x) * 6;
+                int trianglesIndex = (y * createCountX + x) * 6 + startTrianglesIndex;
 
                 triangles[trianglesIndex + 0] = index + 0;
                 triangles[trianglesIndex + 1] = index + 1;
@@ -76,10 +113,14 @@ public class PaintGraph : MonoBehaviour
         }
 
         mesh.vertices = verticals;
-        mesh.uv = uv;
+        mesh.uv = uvs;
         mesh.triangles = triangles;
 
         meshFilter.mesh = mesh;
+
+        transform.position = new Vector2(newScreenRectInt.x, newScreenRectInt.y);
+
+        screenRectInt = newScreenRectInt;
     }
 
     private void SetUV(int startIndex, NodeData nodeData) // UV는 여러곳에서도 쓰고 길기도 하니 따로 뺐음
@@ -123,9 +164,9 @@ public class PaintGraph : MonoBehaviour
 
     private void SetUV(int startIndex, int x, int y)
     {
-        uv[startIndex + 0] = new Vector2(x / textureSize.x, y / textureSize.y);
-        uv[startIndex + 1] = new Vector2(x / textureSize.x, (y + 1) / textureSize.y);
-        uv[startIndex + 2] = new Vector2((x + 1) / textureSize.x, (y + 1) / textureSize.y);
-        uv[startIndex + 3] = new Vector2((x + 1) / textureSize.x, y / textureSize.y);
+        uvs[startIndex + 0] = new Vector2(x / textureSize.x, y / textureSize.y);
+        uvs[startIndex + 1] = new Vector2(x / textureSize.x, (y + 1) / textureSize.y);
+        uvs[startIndex + 2] = new Vector2((x + 1) / textureSize.x, (y + 1) / textureSize.y);
+        uvs[startIndex + 3] = new Vector2((x + 1) / textureSize.x, y / textureSize.y);
     }
 }
