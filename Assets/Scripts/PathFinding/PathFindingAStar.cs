@@ -1,32 +1,29 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+
 
 public class PathFindingAStar : PathFindingDijkstra
 {
     public override string Name => "AStar";
-    
+
+    private void SetWeight(int value)
+    {
+        weight = value;
+    }
+
+    private void SetHeuristicType(HeuristicType type)
+    {
+        heuristicType = type;
+    }
+
     protected override float GetWeight(NodeData nodeData)
     {
-        return Vector2Int.Distance(nodeData.pos, nodeEndData.pos);
-    }
-    
-    protected override async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
-    {
-        if (!nodeGraph.IsContainsPos(pos)) return;
+        if (heuristicType == HeuristicType.Euclidean)
+        {
+            return Vector2Int.Distance(nodeData.pos, nodeEndData.pos) * weight;
+        }
 
-        var nodeData = nodeGraph.GetNodeData(pos.x, pos.y);
-
-        if (nodeData.nodeType == NodeType.Wall) return;
-
-        if (nodeData.stateType != NodeStateType.Discovered)
-            nodeData.stateType = NodeStateType.Visited;
-
-        NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
-
-        float weight = GetWeight(nodeData);
-        nodeData.weight = weight;
-        nodeDataQueue.Enqueue(nodeData, weight);
-
-        await UniTask.Delay(NodeManager.Instance.discoveredDelay, cancellationToken: cancellation.Token);
+        return (Mathf.Abs(nodeData.pos.x - nodeEndData.pos.x) + Mathf.Abs(nodeData.pos.y - nodeEndData.pos.y)) * weight;
     }
 }

@@ -66,8 +66,15 @@ public class NodeManager : SingletonBehavior<NodeManager>
 
     public void StartPathFinding(PathFinding selectPathFinding)
     {
+        if (isPathFinding == false)
+            ResetPathFinding(null);
+        
         isPathFinding = true;
         paintGraph.lineRenderer.positionCount = 0;
+
+        if (startNodeData == null) return;
+        if (endNodeData == null) return;
+        
         selectPathFinding.StartPathFinding(graph, startNodeData, endNodeData).Forget();
     }
 
@@ -84,7 +91,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
             {
                 var nodeData = graph.GetNodeDataByIndex(j, i);
                 nodeData.stateType = NodeStateType.None;
-                nodeData.weight = int.MaxValue;
+                nodeData.gWeight = int.MaxValue;
                 nodeData.parent = null;
                 nodeData.pos = new Vector2Int(j + graph.StartPos.x, i + graph.StartPos.y);
             }

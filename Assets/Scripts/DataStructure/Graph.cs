@@ -113,7 +113,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                 for (int i = 0; i < size.y; i++)
                 {
                     var nodeData = nodePool.PopPool();
-                    nodeData.weight = float.MaxValue;
+                    nodeData.gWeight = float.MaxValue;
                     nodeData.pos = new Vector2Int(startPos.x, (i + startIndex.y) % Capacity + startPos.y);
                     nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodeData;
                 }
@@ -125,7 +125,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                 for (int i = 0; i < size.y; i++)
                 {
                     var nodeData = nodePool.PopPool();
-                    nodeData.weight = float.MaxValue;
+                    nodeData.gWeight = float.MaxValue;
                     nodeData.pos = new Vector2Int(startPos.x + size.x, (i + startIndex.y) % Capacity + startPos.y);
                     nodeGraph[(i + startIndex.y) % Capacity][endIndex.x] = nodeData;
                 }
@@ -154,7 +154,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                 for (int i = 0; i < size.x; i++)
                 {
                     var nodeData = nodePool.PopPool();
-                    nodeData.weight = float.MaxValue;
+                    nodeData.gWeight = float.MaxValue;
                     nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y);
                     nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodeData;
                 }
@@ -166,7 +166,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                 for (int i = 0; i < size.x; i++)
                 {
                     var nodeData = nodePool.PopPool();
-                    nodeData.weight = float.MaxValue;
+                    nodeData.gWeight = float.MaxValue;
                     nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y + size.y);
                     nodeGraph[endIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
                 }

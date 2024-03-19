@@ -29,13 +29,18 @@ public class PathFindingDijkstra : PathFinding
         nodeDataQueue ??= new PriorityQueue(10);
 
         nodeDataQueue.Enqueue(startData);
-        nodeDataHashSet.Add(startData);
+        startData.gWeight = 0;
+        startData.hWeight = GetWeight(startData);
 
         while (nodeDataQueue.Size > 0)
         {
             var nodeData = nodeDataQueue.Dequeue();
             if (nodeData == endData)
                 break;
+
+            if (nodeDataHashSet.Contains(nodeData)) continue;
+
+            nodeDataHashSet.Add(nodeData);
 
             nodeData.stateType = NodeStateType.Discovered;
             NodeManager.Instance.paintGraph.UpdateUV(nodeData.pos.x, nodeData.pos.y, nodeData);
@@ -52,28 +57,30 @@ public class PathFindingDijkstra : PathFinding
 
     protected virtual float GetWeight(NodeData nodeData)
     {
-        return 0;
+        return 1;
     }
 
-    protected virtual async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
+    private async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
     {
         if (!nodeGraph.IsContainsPos(pos)) return;
 
         var nodeData = nodeGraph.GetNodeData(pos.x, pos.y);
-        if (nodeDataHashSet.Contains(nodeData)) return;
-
-        nodeDataHashSet.Add(nodeData);
 
         if (nodeData.nodeType == NodeType.Wall) return;
 
-        if (nodeData.stateType != NodeStateType.Discovered)
-            nodeData.stateType = NodeStateType.Visited;
+        float weight = originData.Weight + 1;
+        if (nodeData.gWeight > weight)
+        {
+            nodeData.parent = originData;
+            nodeData.hWeight = GetWeight(nodeData);
+            nodeData.gWeight = originData.gWeight + 1;
+            nodeDataQueue.Enqueue(nodeData);
 
-        NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
+            if (nodeData.stateType != NodeStateType.Discovered)
+                nodeData.stateType = NodeStateType.Visited;
 
-        float weight = GetWeight(nodeData);
-        nodeData.parent = originData;
-        nodeDataQueue.Enqueue(nodeData, weight);
+            NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
+        }
 
         await UniTask.Delay(NodeManager.Instance.discoveredDelay, cancellationToken: cancellation.Token);
     }

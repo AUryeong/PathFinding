@@ -22,12 +22,6 @@ public class PriorityQueue
         Size = 0;
     }
 
-    public void Enqueue(NodeData nodeData, float priority)
-    {
-        nodeData.weight = priority;
-        Enqueue(nodeData);
-    }
-
     public void Enqueue(NodeData priorityNodeData)
     {
         if (Size >= Capacity)
@@ -45,7 +39,7 @@ public class PriorityQueue
         {
             int parentNode = index / 2;
             if (parentNode == 0) break;
-            if (priorityNodes[parentNode].weight <= priorityNodeData.weight) break;
+            if (priorityNodes[parentNode].Weight <= priorityNodeData.Weight) break;
 
             priorityNodes[index] = priorityNodes[parentNode];
             priorityNodes[parentNode] = priorityNodeData;
@@ -73,8 +67,8 @@ public class PriorityQueue
             var leftChildNode = priorityNodes[leftChildNodeIndex];
             var rightChildNode = priorityNodes[rightChildNodeIndex];
 
-            if (leftChildNode.weight > priorityNodeData.weight && rightChildNode.weight > priorityNodeData.weight) break;
-            int childNodeIndex = leftChildNode.weight < rightChildNode.weight ? leftChildNodeIndex : rightChildNodeIndex;
+            if (leftChildNode.Weight > priorityNodeData.Weight && rightChildNode.Weight > priorityNodeData.Weight) break;
+            int childNodeIndex = leftChildNode.Weight < rightChildNode.Weight ? leftChildNodeIndex : rightChildNodeIndex;
 
             priorityNodes[index] = priorityNodes[childNodeIndex];
             priorityNodes[childNodeIndex] = priorityNodeData;

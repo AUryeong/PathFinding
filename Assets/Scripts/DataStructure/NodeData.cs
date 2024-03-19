@@ -7,7 +7,9 @@ public class NodeData
     
     public Vector2Int pos;
     public NodeData parent;
-    public float weight = float.MaxValue;
+    public float Weight => gWeight + hWeight;
+    public float gWeight = float.MaxValue;
+    public float hWeight = 0;
 }
 
 public enum NodeType

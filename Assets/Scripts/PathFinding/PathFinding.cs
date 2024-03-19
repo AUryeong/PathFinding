@@ -1,7 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+
+
+public enum HeuristicType
+{
+    Euclidean,
+    Manhattan
+}
 
 public abstract class PathFinding
 {
@@ -15,6 +23,9 @@ public abstract class PathFinding
 
     protected bool isFind = false;
 
+    public HeuristicType heuristicType = HeuristicType.Euclidean;
+    public int weight = 10;
+    
     public abstract UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData);
 
     public virtual void Stop()
@@ -27,7 +38,7 @@ public abstract class PathFinding
             {
                 points.Add(NodeManager.Instance.TilePosToGetWorldPoint(nodeData.pos));
                 if (nodeData == nodeStartData) break;
-            
+
                 nodeData = nodeData.parent;
             }
 
