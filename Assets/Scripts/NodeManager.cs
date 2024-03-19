@@ -2,10 +2,7 @@ using UnityEngine;
 
 public class NodeManager : SingletonBehavior<NodeManager>
 {
-    [HideInInspector] public Vector2Int startNodePos;
     [HideInInspector] public NodeData startNodeData;
-
-    [HideInInspector] public Vector2Int endNodePos;
     [HideInInspector] public NodeData endNodeData;
 
     public PaintGraph paintGraph;
@@ -32,6 +29,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
         paintGraph.UpdatePaint();
 
         UpdateNodeByCamera();
+        ResetPathFinding(null);
     }
 
     public void UpdateNodeByCamera()
@@ -55,29 +53,40 @@ public class NodeManager : SingletonBehavior<NodeManager>
             paintGraph.UpdatePaint();
     }
 
-    public Vector2Int GetTilePosByWorldPoint(Vector3 pos)
+    public Vector2Int GetWorldPointToTilePos(Vector3 pos)
     {
         int x = Mathf.RoundToInt(pos.x - 0.5f);
         int y = Mathf.RoundToInt(pos.y - 0.5f);
         return new Vector2Int(x, y);
     }
+    public Vector3 TilePosToGetWorldPoint(Vector2Int pos)
+    {
+        return new Vector3(pos.x +0.5f, pos.y+0.5f);
+    }
 
     public void StartPathFinding(PathFinding selectPathFinding)
     {
         isPathFinding = true;
-        selectPathFinding.StartPathFinding(graph, startNodePos, endNodePos).Forget();
+        paintGraph.lineRenderer.positionCount = 0;
+        selectPathFinding.StartPathFinding(graph, startNodeData, endNodeData).Forget();
     }
 
     public void ResetPathFinding(PathFinding selectPathFinding)
     {
         if (isPathFinding)
-            selectPathFinding.Stop();
+            selectPathFinding?.Stop();
+        
+        paintGraph.lineRenderer.positionCount = 0;
 
         for (int i = 0; i < graph.Size.y; i++)
         {
             for (int j = 0; j < graph.Size.x; j++)
             {
-                graph.GetNodeData(j + graph.StartPos.x, i + graph.StartPos.y).stateType = NodeStateType.None;
+                var nodeData = graph.GetNodeDataByIndex(j, i);
+                nodeData.stateType = NodeStateType.None;
+                nodeData.weight = int.MaxValue;
+                nodeData.parent = null;
+                nodeData.pos = new Vector2Int(j + graph.StartPos.x, i + graph.StartPos.y);
             }
         }
 

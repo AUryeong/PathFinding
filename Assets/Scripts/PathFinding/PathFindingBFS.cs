@@ -5,51 +5,53 @@ using UnityEngine;
 
 public class PathFindingBFS : PathFinding
 {
-    private Graph nodeGraph;
-    private Queue<Vector2Int> nodeDataQueue;
+    private Queue<NodeData> nodeDataQueue;
     private HashSet<NodeData> nodeDataHashSet;
     public override string Name => "BFS";
 
     public override void Stop()
     {
         base.Stop();
+        
         nodeGraph = null;
         nodeDataHashSet.Clear();
         nodeDataQueue.Clear();
     }
 
-    public override async UniTaskVoid StartPathFinding(Graph graph, Vector2Int startPos, Vector2Int endPos)
+    public override async UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData)
     {
         nodeGraph = graph;
 
+        nodeStartData = startData;
+        nodeEndData = endData;
+
         cancellation = new CancellationTokenSource();
         nodeDataHashSet ??= new HashSet<NodeData>();
-        nodeDataQueue ??= new Queue<Vector2Int>();
+        nodeDataQueue ??= new Queue<NodeData>();
 
-        nodeDataQueue.Enqueue(startPos);
-        nodeDataHashSet.Add(nodeGraph.GetNodeData(startPos.x, startPos.y));
+        nodeDataQueue.Enqueue(startData);
+        nodeDataHashSet.Add(startData);
 
         while (nodeDataQueue.Count > 0)
         {
-            var pos = nodeDataQueue.Dequeue();
-            if (pos == endPos)
+            var nodeData = nodeDataQueue.Dequeue();
+            if (nodeData == nodeEndData)
                 break;
 
-            var nodeData = nodeGraph.GetNodeData(pos.x, pos.y);
-
             nodeData.stateType = NodeStateType.Discovered;
-            NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
+            NodeManager.Instance.paintGraph.UpdateUV(nodeData.pos.x, nodeData.pos.y, nodeData);
 
-            foreach (var neighborPos in GetNeighBor(pos))
-                await CheckAndEnqueueNode(neighborPos);
+            foreach (var neighborPos in GetNeighBor(nodeData.pos))
+                await CheckAndEnqueueNode(nodeData, neighborPos);
 
             await UniTask.Delay(NodeManager.Instance.visitDelay, cancellationToken: cancellation.Token);
         }
 
+        isFind = true;
         Stop();
     }
 
-    private async UniTask CheckAndEnqueueNode(Vector2Int pos)
+    private async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
     {
         if (!nodeGraph.IsContainsPos(pos)) return;
 
@@ -63,7 +65,8 @@ public class PathFindingBFS : PathFinding
         nodeData.stateType = NodeStateType.Visited;
         NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
 
-        nodeDataQueue.Enqueue(pos);
+        nodeData.parent = originData;
+        nodeDataQueue.Enqueue(nodeData);
 
         await UniTask.Delay(NodeManager.Instance.discoveredDelay, cancellationToken: cancellation.Token);
     }

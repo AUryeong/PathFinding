@@ -5,8 +5,7 @@ using UnityEngine;
 
 public class PathFindingDijkstra : PathFinding
 {
-    private Graph nodeGraph;
-    private Queue<Vector2Int> nodeDataQueue;
+    protected PriorityQueue nodeDataQueue;
     private HashSet<NodeData> nodeDataHashSet;
     public override string Name => "Dijkstra";
 
@@ -18,38 +17,45 @@ public class PathFindingDijkstra : PathFinding
         nodeDataQueue.Clear();
     }
 
-    public override async UniTaskVoid StartPathFinding(Graph graph, Vector2Int startPos, Vector2Int endPos)
+    public override async UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData)
     {
         nodeGraph = graph;
 
+        nodeStartData = startData;
+        nodeEndData = endData;
+
         cancellation = new CancellationTokenSource();
         nodeDataHashSet ??= new HashSet<NodeData>();
-        nodeDataQueue ??= new Queue<Vector2Int>();
+        nodeDataQueue ??= new PriorityQueue(10);
 
-        nodeDataQueue.Enqueue(startPos);
-        nodeDataHashSet.Add(nodeGraph.GetNodeData(startPos.x, startPos.y));
+        nodeDataQueue.Enqueue(startData);
+        nodeDataHashSet.Add(startData);
 
-        while (nodeDataQueue.Count > 0)
+        while (nodeDataQueue.Size > 0)
         {
-            var pos = nodeDataQueue.Dequeue();
-            if (pos == endPos)
+            var nodeData = nodeDataQueue.Dequeue();
+            if (nodeData == endData)
                 break;
 
-            var nodeData = nodeGraph.GetNodeData(pos.x, pos.y);
-
             nodeData.stateType = NodeStateType.Discovered;
-            NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
+            NodeManager.Instance.paintGraph.UpdateUV(nodeData.pos.x, nodeData.pos.y, nodeData);
 
-            foreach (var neighborPos in GetNeighBor(pos))
-                await CheckAndEnqueueNode(neighborPos);
+            foreach (var neighborPos in GetNeighBor(nodeData.pos))
+                await CheckAndEnqueueNode(nodeData, neighborPos);
 
             await UniTask.Delay(NodeManager.Instance.visitDelay, cancellationToken: cancellation.Token);
         }
 
+        isFind = true;
         Stop();
     }
 
-    private async UniTask CheckAndEnqueueNode(Vector2Int pos)
+    protected virtual float GetWeight(NodeData nodeData)
+    {
+        return 0;
+    }
+
+    protected virtual async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
     {
         if (!nodeGraph.IsContainsPos(pos)) return;
 
@@ -60,10 +66,14 @@ public class PathFindingDijkstra : PathFinding
 
         if (nodeData.nodeType == NodeType.Wall) return;
 
-        nodeData.stateType = NodeStateType.Visited;
+        if (nodeData.stateType != NodeStateType.Discovered)
+            nodeData.stateType = NodeStateType.Visited;
+
         NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
 
-        nodeDataQueue.Enqueue(pos);
+        float weight = GetWeight(nodeData);
+        nodeData.parent = originData;
+        nodeDataQueue.Enqueue(nodeData, weight);
 
         await UniTask.Delay(NodeManager.Instance.discoveredDelay, cancellationToken: cancellation.Token);
     }

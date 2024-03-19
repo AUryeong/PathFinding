@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -9,10 +7,34 @@ public abstract class PathFinding
 {
     protected CancellationTokenSource cancellation;
     public abstract string Name { get; }
-    public abstract UniTaskVoid StartPathFinding(Graph graph, Vector2Int startPos, Vector2Int endPos);
+
+    protected Graph nodeGraph;
+
+    protected NodeData nodeEndData;
+    protected NodeData nodeStartData;
+
+    protected bool isFind = false;
+
+    public abstract UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData);
 
     public virtual void Stop()
     {
+        if (isFind)
+        {
+            var nodeData = nodeEndData;
+            var points = new List<Vector3>();
+            while (true)
+            {
+                points.Add(NodeManager.Instance.TilePosToGetWorldPoint(nodeData.pos));
+                if (nodeData == nodeStartData) break;
+            
+                nodeData = nodeData.parent;
+            }
+
+            NodeManager.Instance.paintGraph.lineRenderer.positionCount = points.Count;
+            NodeManager.Instance.paintGraph.lineRenderer.SetPositions(points.ToArray());
+        }
+
         if (cancellation != null)
         {
             cancellation.Cancel();

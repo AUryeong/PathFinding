@@ -1,33 +1,6 @@
 ﻿using System;
 using UnityEngine;
 
-public class NodeData
-{
-    public NodeType nodeType = NodeType.None;
-    public NodeStateType stateType = NodeStateType.None;
-}
-
-public enum NodeType
-{
-    None,
-    Wall,
-    Start,
-    End
-}
-
-public enum NodeStateType
-{
-    None,
-    Discovered,
-    Visited
-}
-
-public enum AddType
-{
-    First,
-    Last
-}
-
 public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
 {
     private NodeData[][] nodeGraph;
@@ -120,26 +93,42 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
         return nodeGraph[(y + startIndex.y - startPos.y) % Capacity][(x + startIndex.x - startPos.x) % Capacity];
     }
 
+    public NodeData GetNodeDataByIndex(int x, int y)
+    {
+        return nodeGraph[(y + startIndex.y) % Capacity][(x + startIndex.x) % Capacity];
+    }
+
     public void AddX(AddType type)
     {
         if (size.x >= Capacity)
             Capacity *= 2;
 
+        size.x++;
         switch (type)
         {
             case AddType.First:
             {
                 startIndex.x = startIndex.x - 1 < 0 ? Capacity - 1 : startIndex.x - 1;
-                for (int i = 0; i < size.y; i++)
-                    nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodePool.PopPool();
-
                 startPos.x--;
+                for (int i = 0; i < size.y; i++)
+                {
+                    var nodeData = nodePool.PopPool();
+                    nodeData.weight = float.MaxValue;
+                    nodeData.pos = new Vector2Int(startPos.x, (i + startIndex.y) % Capacity + startPos.y);
+                    nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodeData;
+                }
+
                 break;
             }
             case AddType.Last:
             {
                 for (int i = 0; i < size.y; i++)
-                    nodeGraph[(i + startIndex.y) % Capacity][endIndex.x] = nodePool.PopPool();
+                {
+                    var nodeData = nodePool.PopPool();
+                    nodeData.weight = float.MaxValue;
+                    nodeData.pos = new Vector2Int(startPos.x + size.x, (i + startIndex.y) % Capacity + startPos.y);
+                    nodeGraph[(i + startIndex.y) % Capacity][endIndex.x] = nodeData;
+                }
 
                 endIndex.x = (endIndex.x + 1) % Capacity;
                 break;
@@ -147,8 +136,6 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
             default:
                 return;
         }
-
-        size.x++;
     }
 
     public void AddY(AddType type)
@@ -156,21 +143,33 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
         if (size.y >= Capacity)
             Capacity *= 2;
 
+        size.y++;
         switch (type)
         {
             case AddType.First:
             {
+                startPos.y--;
+
                 startIndex.y = startIndex.y - 1 < 0 ? Capacity - 1 : startIndex.y - 1;
                 for (int i = 0; i < size.x; i++)
-                    nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
+                {
+                    var nodeData = nodePool.PopPool();
+                    nodeData.weight = float.MaxValue;
+                    nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y);
+                    nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodeData;
+                }
 
-                startPos.y--;
                 break;
             }
             case AddType.Last:
             {
                 for (int i = 0; i < size.x; i++)
+                {
+                    var nodeData = nodePool.PopPool();
+                    nodeData.weight = float.MaxValue;
+                    nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y + size.y);
                     nodeGraph[endIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
+                }
 
                 endIndex.y = (endIndex.y + 1) % Capacity;
                 break;
@@ -178,7 +177,5 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
             default:
                 return;
         }
-
-        size.y++;
     }
 }

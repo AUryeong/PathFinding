@@ -2,6 +2,8 @@
 
 public class PaintGraph : MonoBehaviour
 {
+    public LineRenderer lineRenderer;
+    
     private Graph graph;
 
     private MeshFilter meshFilter;
@@ -54,7 +56,7 @@ public class PaintGraph : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 int index = (y * width + x) * 4;
-                var nodeData = graph.GetNodeData(x + graphStartPos.x, y + graphStartPos.y);
+                var nodeData = graph.GetNodeDataByIndex(x, y);
 
                 verticals[index + 0] = new Vector3(TILE_SIZE * x + pos.x, TILE_SIZE * y + pos.y);
                 verticals[index + 1] = new Vector3(TILE_SIZE * x + pos.x, TILE_SIZE * (y + 1) + pos.y);

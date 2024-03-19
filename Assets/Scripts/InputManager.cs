@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -16,7 +15,9 @@ public class InputManager : SingletonBehavior<InputManager>
     [SerializeField] private Toggle pathFindingToggle;
     private readonly PathFinding[] pathFindings = 
     {
-        new PathFindingBFS()
+        new PathFindingBFS(),
+        new PathFindingDijkstra(),
+        new PathFindingAStar()
     };
 
     [SerializeField] private TMP_InputField discoveryDelayInput;
@@ -76,6 +77,7 @@ public class InputManager : SingletonBehavior<InputManager>
     {
         if (NodeManager.Instance.isPathFinding) return;
         
+        ResetPathFinding();
         selectPathFinding = pathFindings[index];
     }
 
@@ -123,7 +125,7 @@ public class InputManager : SingletonBehavior<InputManager>
     private void SetNodeTypeByMouse(NodeType nodeType)
     {
         var vector = CameraManager.Instance.mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        var pos = NodeManager.Instance.GetTilePosByWorldPoint(vector);
+        var pos = NodeManager.Instance.GetWorldPointToTilePos(vector);
         var nodeData = NodeManager.Instance.graph.GetNodeData(pos.x, pos.y);
 
         if (nodeData == null) return;
@@ -134,23 +136,19 @@ public class InputManager : SingletonBehavior<InputManager>
             case NodeType.Start:
                 if (NodeManager.Instance.startNodeData != null)
                 {
-                    var prevPos = NodeManager.Instance.startNodePos;
                     var prevData = NodeManager.Instance.startNodeData;
                     prevData.nodeType = NodeType.None;
-                    NodeManager.Instance.paintGraph.UpdateUV(prevPos.x, prevPos.y, prevData);
+                    NodeManager.Instance.paintGraph.UpdateUV(prevData.pos.x, prevData.pos.y, prevData);
                 }
-                NodeManager.Instance.startNodePos = pos;
                 NodeManager.Instance.startNodeData = nodeData;
                 break;
             case NodeType.End:
                 if (NodeManager.Instance.endNodeData != null)
                 {
-                    var prevPos = NodeManager.Instance.endNodePos;
                     var prevData = NodeManager.Instance.endNodeData;
                     prevData.nodeType = NodeType.None;
-                    NodeManager.Instance.paintGraph.UpdateUV(prevPos.x, prevPos.y, prevData);
+                    NodeManager.Instance.paintGraph.UpdateUV(prevData.pos.x, prevData.pos.y, prevData);
                 }
-                NodeManager.Instance.endNodePos = pos;
                 NodeManager.Instance.endNodeData = nodeData;
                 break;
         }
