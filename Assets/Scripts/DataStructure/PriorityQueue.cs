@@ -4,14 +4,14 @@ using UnityEngine;
 public class PriorityQueue
 {
     private NodeData[] priorityNodes;
-    private int Capacity => priorityNodes.Length-1;
+    private int Capacity => priorityNodes.Length - 1;
 
     public int Size { get; private set; }
     private int RootIndex => 1;
 
-    public PriorityQueue(int capacity)
+    public PriorityQueue(int capacity = 10)
     {
-        priorityNodes = new NodeData[capacity+1];
+        priorityNodes = new NodeData[capacity + 1];
     }
 
     public void Clear()
@@ -26,7 +26,7 @@ public class PriorityQueue
     {
         if (Size >= Capacity)
         {
-            var newArray = new NodeData[Capacity * 2+1];
+            var newArray = new NodeData[Capacity * 2 + 1];
             Array.Copy(priorityNodes, 1, newArray, 1, Size);
             priorityNodes = newArray;
         }
@@ -53,7 +53,7 @@ public class PriorityQueue
         var result = priorityNodes[RootIndex];
         priorityNodes[RootIndex] = priorityNodeData;
         Size--;
-        
+
         int index = RootIndex;
 
         while (true)

@@ -26,7 +26,7 @@ public class PathFindingDijkstra : PathFinding
 
         cancellation = new CancellationTokenSource();
         nodeDataHashSet ??= new HashSet<NodeData>();
-        nodeDataQueue ??= new PriorityQueue(10);
+        nodeDataQueue ??= new PriorityQueue();
 
         nodeDataQueue.Enqueue(startData);
         startData.gWeight = 0;
