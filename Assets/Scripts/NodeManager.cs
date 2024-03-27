@@ -101,7 +101,6 @@ public class NodeManager : SingletonBehavior<NodeManager>
                 nodeData.stateType = NodeStateType.None;
                 nodeData.gWeight = int.MaxValue;
                 nodeData.parent = null;
-                nodeData.pos = new Vector2Int(j + graph.StartPos.x, i + graph.StartPos.y);
             }
         }
 
