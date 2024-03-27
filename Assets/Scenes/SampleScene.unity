@@ -889,7 +889,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 392597963}
-  - component: {fileID: 392597964}
   - component: {fileID: 392597965}
   m_Layer: 5
   m_Name: Toggle Group
@@ -919,19 +918,6 @@ RectTransform:
   m_AnchoredPosition: {x: 226.41, y: -78.07}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &392597964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 392597962}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2fafe2cfe61f6974895a912c3755e8f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_AllowSwitchOff: 1
 --- !u!114 &392597965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4994,7 +4980,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1200947856}
   toggleTransition: 1
   graphic: {fileID: 1832220407}
-  m_Group: {fileID: 392597964}
+  m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []

@@ -4,16 +4,19 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-
-public enum HeuristicType
-{
-    Euclidean,
-    Manhattan
-}
-
 public abstract class PathFinding
 {
+    public static readonly PathFinding[] pathFindings =
+    {
+        new PathFindingBFS(),
+        new PathFindingDijkstra(),
+        new PathFindingAStar()
+    };
+
     protected CancellationTokenSource cancellation;
+   
+    protected NodeManager nodeManager;
+
     public abstract string Name { get; }
 
     protected Graph nodeGraph;
@@ -22,9 +25,6 @@ public abstract class PathFinding
     protected NodeData nodeStartData;
 
     protected bool isFind = false;
-
-    public HeuristicType heuristicType = HeuristicType.Euclidean;
-    public int weight = 10;
     
     public abstract UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData);
 
@@ -42,8 +42,8 @@ public abstract class PathFinding
                 nodeData = nodeData.parent;
             }
 
-            NodeManager.Instance.paintGraph.lineRenderer.positionCount = points.Count;
-            NodeManager.Instance.paintGraph.lineRenderer.SetPositions(points.ToArray());
+            nodeManager.paintGraph.lineRendererDict[this].positionCount = points.Count;
+            nodeManager.paintGraph.lineRendererDict[this].SetPositions(points.ToArray());
         }
 
         if (cancellation != null)
@@ -51,8 +51,6 @@ public abstract class PathFinding
             cancellation.Cancel();
             cancellation.Dispose();
         }
-
-        NodeManager.Instance.isPathFinding = false;
     }
 
     protected virtual IEnumerable<Vector2Int> GetNeighBor(Vector2Int pos)

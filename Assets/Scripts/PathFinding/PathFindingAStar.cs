@@ -5,25 +5,17 @@ using UnityEngine;
 
 public class PathFindingAStar : PathFindingDijkstra
 {
-    public override string Name => "AStar";
-
-    private void SetWeight(int value)
-    {
-        weight = value;
-    }
-
-    private void SetHeuristicType(HeuristicType type)
-    {
-        heuristicType = type;
-    }
+    public override string Name => "A*";
+    private InputManager inputManager;
 
     protected override float GetWeight(NodeData nodeData)
     {
-        if (heuristicType == HeuristicType.Euclidean)
-        {
-            return Vector2Int.Distance(nodeData.pos, nodeEndData.pos) * weight;
-        }
+        if (inputManager == null)
+            inputManager = InputManager.Instance;
 
-        return (Mathf.Abs(nodeData.pos.x - nodeEndData.pos.x) + Mathf.Abs(nodeData.pos.y - nodeEndData.pos.y)) * weight;
+        if (inputManager.heuristicType == HeuristicType.Euclidean)
+            return Vector2Int.Distance(nodeData.pos, nodeEndData.pos) * inputManager.weight;
+        else
+            return (Mathf.Abs(nodeData.pos.x - nodeEndData.pos.x) + Mathf.Abs(nodeData.pos.y - nodeEndData.pos.y)) * inputManager.weight;
     }
 }

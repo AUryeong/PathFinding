@@ -1,24 +1,28 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+public enum HeuristicType
+{
+    Euclidean,
+    Manhattan
+}
 
 public class InputManager : SingletonBehavior<InputManager>
 {
     private NodeType selectNodeType = NodeType.Wall;
-    private PathFinding selectPathFinding;
+    private List<PathFinding> selectPathFindings;
+
+    public HeuristicType heuristicType = HeuristicType.Euclidean;
+    public int weight = 10;
 
     [Header("Left UI")]
     [SerializeField] private Button[] paletteButtons;
 
     [Header("Right UI")]
     [SerializeField] private Toggle pathFindingToggle;
-    private readonly PathFinding[] pathFindings =
-    {
-        new PathFindingBFS(),
-        new PathFindingDijkstra(),
-        new PathFindingAStar()
-    };
+
     [Space(10f)]
     [SerializeField] private TMP_InputField weightInput;
     [SerializeField] private TMP_Dropdown dropDown;
@@ -33,6 +37,8 @@ public class InputManager : SingletonBehavior<InputManager>
 
     public override void Init()
     {
+        selectPathFindings = new List<PathFinding>(PathFinding.pathFindings.Length);
+
         for (int i = 0; i < (int)NodeType.End; i++)
         {
             var button = paletteButtons[i];
@@ -42,31 +48,29 @@ public class InputManager : SingletonBehavior<InputManager>
             button.onClick.AddListener(() => ChangePalette(paletteType));
         }
 
-        for (int i = 0; i < pathFindings.Length; i++)
+        for (int i = 0; i < PathFinding.pathFindings.Length; i++)
         {
             int index = i;
             var toggle = Instantiate(pathFindingToggle, pathFindingToggle.transform.parent);
 
             toggle.gameObject.SetActive(true);
 
-            toggle.GetComponentInChildren<TextMeshProUGUI>().text = pathFindings[i].Name;
+            toggle.GetComponentInChildren<TextMeshProUGUI>().text = PathFinding.pathFindings[i].Name;
 
             toggle.onValueChanged.RemoveAllListeners();
             toggle.onValueChanged.AddListener((value) =>
             {
-                if (value)
-                    ChangePathFinding(index);
+                ChangePathFinding(value, index);
             });
 
-            if (index == 0)
-                toggle.isOn = true;
+            toggle.isOn = true;
         }
 
         resetButton.onClick.RemoveAllListeners();
-        resetButton.onClick.AddListener(ResetPathFinding);
+        resetButton.onClick.AddListener(NodeManager.Instance.ResetPathFinding);
 
         startButton.onClick.RemoveAllListeners();
-        startButton.onClick.AddListener(StartPathFinding);
+        startButton.onClick.AddListener(NodeManager.Instance.StartPathFinding);
 
         discoveryDelayInput.text = NodeManager.Instance.discoveredDelay.ToString();
         discoveryDelayInput.onValueChanged.RemoveAllListeners();
@@ -77,32 +81,26 @@ public class InputManager : SingletonBehavior<InputManager>
         visitDelayInput.onValueChanged.AddListener(ChangeVisitDelay);
 
         weightInput.onValueChanged.RemoveAllListeners();
-        weightInput.onValueChanged.AddListener((value) => selectPathFinding.weight = int.Parse(value));
+        weightInput.onValueChanged.AddListener((value) => weight = int.Parse(value));
 
         dropDown.onValueChanged.RemoveAllListeners();
-        dropDown.onValueChanged.AddListener((value) => selectPathFinding.heuristicType = (HeuristicType)value);
+        dropDown.onValueChanged.AddListener((value) => heuristicType = (HeuristicType)value);
     }
 
-    private void ChangePathFinding(int index)
+    private void ChangePathFinding(bool isToggle, int index)
     {
         if (NodeManager.Instance.isPathFinding) return;
+        if (isToggle)
+            selectPathFindings.Add(PathFinding.pathFindings[index]);
+        else
+            selectPathFindings.Remove(PathFinding.pathFindings[index]);
 
-        ResetPathFinding();
-        selectPathFinding = pathFindings[index];
-        weightInput.text = selectPathFinding.weight.ToString();
-        dropDown.value = (int)selectPathFinding.heuristicType;
+        NodeManager.Instance.ResetPathFinding();
     }
 
-    private void StartPathFinding()
+    public List<PathFinding> GetSelectPathFinding()
     {
-        if (NodeManager.Instance.isPathFinding) return;
-
-        NodeManager.Instance.StartPathFinding(selectPathFinding);
-    }
-
-    private void ResetPathFinding()
-    {
-        NodeManager.Instance.ResetPathFinding(selectPathFinding);
+        return selectPathFindings;
     }
 
     private void ChangePalette(NodeType nodeType)

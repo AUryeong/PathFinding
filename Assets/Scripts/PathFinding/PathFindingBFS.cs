@@ -20,6 +20,8 @@ public class PathFindingBFS : PathFinding
 
     public override async UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData)
     {
+        nodeManager = NodeManager.Instance;
+
         nodeGraph = graph;
 
         nodeStartData = startData;
@@ -36,18 +38,21 @@ public class PathFindingBFS : PathFinding
         {
             var nodeData = nodeDataQueue.Dequeue();
             if (nodeData == nodeEndData)
+            {
+                isFind = true;
                 break;
+            }
 
             nodeData.stateType = NodeStateType.Discovered;
-            NodeManager.Instance.paintGraph.UpdateUV(nodeData.pos.x, nodeData.pos.y, nodeData);
+            nodeManager.paintGraph.UpdateUV(nodeData.pos.x, nodeData.pos.y, nodeData);
 
             foreach (var neighborPos in GetNeighBor(nodeData.pos))
                 await CheckAndEnqueueNode(nodeData, neighborPos);
 
-            await UniTask.Delay(NodeManager.Instance.visitDelay, cancellationToken: cancellation.Token);
+            await UniTask.Delay(nodeManager.visitDelay, cancellationToken: cancellation.Token);
         }
 
-        isFind = true;
+        cancellation = null;
         Stop();
     }
 
@@ -63,11 +68,11 @@ public class PathFindingBFS : PathFinding
         if (nodeData.nodeType == NodeType.Wall) return;
 
         nodeData.stateType = NodeStateType.Visited;
-        NodeManager.Instance.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
+        nodeManager.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
 
         nodeData.parent = originData;
         nodeDataQueue.Enqueue(nodeData);
 
-        await UniTask.Delay(NodeManager.Instance.discoveredDelay, cancellationToken: cancellation.Token);
+        await UniTask.Delay(nodeManager.discoveredDelay, cancellationToken: cancellation.Token);
     }
 }

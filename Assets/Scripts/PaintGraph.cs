@@ -1,9 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class PaintGraph : MonoBehaviour
 {
-    public LineRenderer lineRenderer;
-    
+    [SerializeField] private LineRenderer originLineRenderer;
+    public Dictionary<PathFinding, LineRenderer> lineRendererDict;
+    private LineRenderer[] lineRenderers;
+
     private Graph graph;
 
     private MeshFilter meshFilter;
@@ -19,6 +22,16 @@ public class PaintGraph : MonoBehaviour
     {
         graph = nodeGraph;
 
+        lineRendererDict = new(PathFinding.pathFindings.Length);
+        lineRenderers = new LineRenderer[PathFinding.pathFindings.Length];
+        for (int i = 0; i < PathFinding.pathFindings.Length; i++)
+        {
+            var lineRenderer = Instantiate(originLineRenderer, originLineRenderer.transform.parent);
+
+            lineRenderers[i] = lineRenderer;
+            lineRendererDict.Add(PathFinding.pathFindings[i], lineRenderer);
+        }
+
         meshFilter = GetComponent<MeshFilter>();
         meshRenderer = GetComponent<MeshRenderer>();
         mesh = new Mesh();
@@ -27,6 +40,13 @@ public class PaintGraph : MonoBehaviour
         textureSize = new Vector2(texture.width / 100f, texture.height / 100f);
     }
 
+    public void ResetLineRenderers()
+    {
+        for(int i = 0; i < lineRenderers.Length; i++)
+        {
+            lineRenderers[i].positionCount = 0;
+        }
+    }
 
     public void UpdateUV(int x, int y, NodeData nodeData = null) // 특정 타일 위치만 색깔 다시 그리기
     {

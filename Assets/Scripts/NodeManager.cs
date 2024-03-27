@@ -29,7 +29,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
         paintGraph.UpdatePaint();
 
         UpdateNodeByCamera();
-        ResetPathFinding(null);
+        ResetPathFinding();
     }
 
     public void UpdateNodeByCamera()
@@ -61,29 +61,37 @@ public class NodeManager : SingletonBehavior<NodeManager>
     }
     public Vector3 TilePosToGetWorldPoint(Vector2Int pos)
     {
-        return new Vector3(pos.x +0.5f, pos.y+0.5f);
+        return new Vector3(pos.x + 0.5f, pos.y + 0.5f);
     }
 
-    public void StartPathFinding(PathFinding selectPathFinding)
+    public void StartPathFinding()
     {
-        if (isPathFinding == false)
-            ResetPathFinding(null);
-        
+        if (isPathFinding) return;
+
         isPathFinding = true;
-        paintGraph.lineRenderer.positionCount = 0;
+        paintGraph.ResetLineRenderers();
 
         if (startNodeData == null) return;
         if (endNodeData == null) return;
-        
-        selectPathFinding.StartPathFinding(graph, startNodeData, endNodeData).Forget();
+
+        foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
+        {
+            pathFinding.StartPathFinding(graph, startNodeData, endNodeData).Forget();
+        }
     }
 
-    public void ResetPathFinding(PathFinding selectPathFinding)
+    public void ResetPathFinding()
     {
         if (isPathFinding)
-            selectPathFinding?.Stop();
-        
-        paintGraph.lineRenderer.positionCount = 0;
+        {
+            foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
+            {
+                Debug.Log(pathFinding.Name);
+                pathFinding?.Stop();
+            }
+        }
+
+        paintGraph.ResetLineRenderers();
 
         for (int i = 0; i < graph.Size.y; i++)
         {
