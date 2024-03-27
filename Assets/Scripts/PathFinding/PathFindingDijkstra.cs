@@ -9,6 +9,8 @@ public class PathFindingDijkstra : PathFinding
     private HashSet<NodeData> nodeDataHashSet;
     public override string Name => "Dijkstra";
 
+    public override Color Color => Color.red;
+
     public override void Stop()
     {
         base.Stop();
@@ -29,10 +31,11 @@ public class PathFindingDijkstra : PathFinding
         cancellation = new CancellationTokenSource();
         nodeDataHashSet ??= new HashSet<NodeData>();
         nodeDataQueue ??= new PriorityQueue();
+        
+        startData.gWeight = 0;
+        startData.hWeight = 0;
 
         nodeDataQueue.Enqueue(startData);
-        startData.gWeight = 0;
-        startData.hWeight = GetWeight(startData);
 
         while (nodeDataQueue.Size > 0)
         {
@@ -60,12 +63,7 @@ public class PathFindingDijkstra : PathFinding
         Stop();
     }
 
-    protected virtual float GetWeight(NodeData nodeData)
-    {
-        return 1;
-    }
-
-    private async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
+    protected virtual async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
     {
         if (!nodeGraph.IsContainsPos(pos)) return;
 
@@ -73,12 +71,11 @@ public class PathFindingDijkstra : PathFinding
 
         if (nodeData.nodeType == NodeType.Wall) return;
 
-        float weight = originData.Weight + 1;
+        float weight = originData.gWeight + 1;
         if (nodeData.gWeight > weight)
         {
             nodeData.parent = originData;
-            nodeData.hWeight = GetWeight(nodeData);
-            nodeData.gWeight = originData.gWeight + 1;
+            nodeData.gWeight = weight;
             nodeDataQueue.Enqueue(nodeData);
 
             if (nodeData.stateType != NodeStateType.Discovered)

@@ -8,6 +8,7 @@ public class PathFindingBFS : PathFinding
     private Queue<NodeData> nodeDataQueue;
     private HashSet<NodeData> nodeDataHashSet;
     public override string Name => "BFS";
+    public override Color Color => Color.yellow;
 
     public override void Stop()
     {

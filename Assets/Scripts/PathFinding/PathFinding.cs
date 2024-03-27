@@ -18,6 +18,7 @@ public abstract class PathFinding
     protected NodeManager nodeManager;
 
     public abstract string Name { get; }
+    public abstract Color Color { get; }
 
     protected Graph nodeGraph;
 
@@ -44,6 +45,8 @@ public abstract class PathFinding
 
             nodeManager.paintGraph.lineRendererDict[this].positionCount = points.Count;
             nodeManager.paintGraph.lineRendererDict[this].SetPositions(points.ToArray());
+
+            isFind = false;
         }
 
         if (cancellation != null)

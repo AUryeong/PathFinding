@@ -89,7 +89,6 @@ public class InputManager : SingletonBehavior<InputManager>
 
     private void ChangePathFinding(bool isToggle, int index)
     {
-        if (NodeManager.Instance.isPathFinding) return;
         if (isToggle)
             selectPathFindings.Add(PathFinding.pathFindings[index]);
         else

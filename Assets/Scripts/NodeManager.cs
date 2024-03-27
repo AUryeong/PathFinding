@@ -75,9 +75,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
         if (endNodeData == null) return;
 
         foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
-        {
             pathFinding.StartPathFinding(graph, startNodeData, endNodeData).Forget();
-        }
     }
 
     public void ResetPathFinding()
@@ -85,10 +83,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
         if (isPathFinding)
         {
             foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
-            {
-                Debug.Log(pathFinding.Name);
                 pathFinding?.Stop();
-            }
         }
 
         paintGraph.ResetLineRenderers();
