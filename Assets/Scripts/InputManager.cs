@@ -89,12 +89,12 @@ public class InputManager : SingletonBehavior<InputManager>
 
     private void ChangePathFinding(bool isToggle, int index)
     {
+        NodeManager.Instance.ResetPathFinding();
+
         if (isToggle)
             selectPathFindings.Add(PathFinding.pathFindings[index]);
         else
             selectPathFindings.Remove(PathFinding.pathFindings[index]);
-
-        NodeManager.Instance.ResetPathFinding();
     }
 
     public List<PathFinding> GetSelectPathFinding()
@@ -135,7 +135,7 @@ public class InputManager : SingletonBehavior<InputManager>
     {
         var vector = CameraManager.Instance.mainCamera.ScreenToWorldPoint(Input.mousePosition);
         var pos = NodeManager.Instance.GetWorldPointToTilePos(vector);
-        var nodeData = NodeManager.Instance.graph.GetNodeData(pos.x, pos.y);
+        var nodeData = NodeManager.Instance.originGraph.GetNodeData(pos.x, pos.y);
 
         if (nodeData == null) return;
         if (nodeData.nodeType == nodeType) return;

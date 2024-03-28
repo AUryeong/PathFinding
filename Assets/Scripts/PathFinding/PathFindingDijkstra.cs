@@ -14,7 +14,6 @@ public class PathFindingDijkstra : PathFinding
     public override void Stop()
     {
         base.Stop();
-        nodeGraph = null;
         nodeDataHashSet.Clear();
         nodeDataQueue.Clear();
     }
@@ -27,6 +26,8 @@ public class PathFindingDijkstra : PathFinding
 
         nodeStartData = startData;
         nodeEndData = endData;
+
+        lineRenderer = nodeManager.paintGraph.GetLineRenderer(this);
 
         cancellation = new CancellationTokenSource();
         nodeDataHashSet ??= new HashSet<NodeData>();
@@ -50,11 +51,11 @@ public class PathFindingDijkstra : PathFinding
 
             nodeDataHashSet.Add(nodeData);
 
-            nodeData.stateType = NodeStateType.Discovered;
-            nodeManager.paintGraph.UpdateUV(nodeData.pos.x, nodeData.pos.y, nodeData);
-
             foreach (var neighborPos in GetNeighBor(nodeData.pos))
                 await CheckAndEnqueueNode(nodeData, neighborPos);
+
+            lineRenderer.positionCount++;
+            lineRenderer.SetPosition(lineRenderer.positionCount - 1, nodeManager.TilePosToGetWorldPoint(nodeData.pos));
 
             await UniTask.Delay(nodeManager.visitDelay, cancellationToken: cancellation.Token);
         }
@@ -77,11 +78,6 @@ public class PathFindingDijkstra : PathFinding
             nodeData.parent = originData;
             nodeData.gWeight = weight;
             nodeDataQueue.Enqueue(nodeData);
-
-            if (nodeData.stateType != NodeStateType.Discovered)
-                nodeData.stateType = NodeStateType.Visited;
-
-            nodeManager.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
         }
 
         await UniTask.Delay(nodeManager.discoveredDelay, cancellationToken: cancellation.Token);

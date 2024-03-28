@@ -14,7 +14,7 @@ public abstract class PathFinding
     };
 
     protected CancellationTokenSource cancellation;
-   
+
     protected NodeManager nodeManager;
 
     public abstract string Name { get; }
@@ -25,8 +25,10 @@ public abstract class PathFinding
     protected NodeData nodeEndData;
     protected NodeData nodeStartData;
 
+    protected LineRenderer lineRenderer;
+
     protected bool isFind = false;
-    
+
     public abstract UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData);
 
     public virtual void Stop()
@@ -43,10 +45,16 @@ public abstract class PathFinding
                 nodeData = nodeData.parent;
             }
 
-            nodeManager.paintGraph.lineRendererDict[this].positionCount = points.Count;
-            nodeManager.paintGraph.lineRendererDict[this].SetPositions(points.ToArray());
+            lineRenderer.positionCount = points.Count;
+            lineRenderer.SetPositions(points.ToArray());
 
             isFind = false;
+        }
+
+        if (nodeGraph != null)
+        {
+            nodeGraph.PushPoolNodeData();
+            nodeGraph = null;
         }
 
         if (cancellation != null)

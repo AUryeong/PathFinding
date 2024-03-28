@@ -24,11 +24,6 @@ public class PathFindingAStar : PathFindingDijkstra
             nodeData.gWeight = originData.gWeight + 1;
             nodeData.hWeight = GetHeuristicWeight(nodeData);
             nodeDataQueue.Enqueue(nodeData);
-
-            if (nodeData.stateType != NodeStateType.Discovered)
-                nodeData.stateType = NodeStateType.Visited;
-
-            nodeManager.paintGraph.UpdateUV(pos.x, pos.y, nodeData);
         }
 
         await UniTask.Delay(nodeManager.discoveredDelay, cancellationToken: cancellation.Token);

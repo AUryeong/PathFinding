@@ -4,7 +4,7 @@ using UnityEngine;
 public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
 {
     private NodeData[][] nodeGraph;
-    private readonly ClassPool<NodeData> nodePool;
+    private ClassPool<NodeData> nodePool;
 
     public int Capacity
     {
@@ -31,8 +31,6 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
 
             endIndex.x = Mathf.Min(beforeCapacity, size.x);
             endIndex.y = Mathf.Min(beforeCapacity, size.y);
-
-            nodePool.CreatePoolObject(value * value - beforeCapacity * beforeCapacity);
         }
     }
 
@@ -55,9 +53,49 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
         endIndex = Vector2Int.zero;
         startPos = Vector2Int.zero;
 
-        nodePool = new ClassPool<NodeData>()
-            .CreatePoolObject(capacity * capacity);
-        Capacity = capacity;
+        nodePool = ClassPool<NodeData>.Get();
+    }
+
+    public Graph Copy()
+    {
+        var graph = new Graph(Capacity);
+        for (int i = 0; i < Capacity; i++)
+        {
+            for (int j = 0; j < Capacity; j++)
+            {
+                var copyNodeData = nodeGraph[i][j];
+                if (copyNodeData == null) continue;
+
+                var pasteNodeData = nodePool.PopPool();
+
+                pasteNodeData.parent = copyNodeData.parent;
+                pasteNodeData.nodeType = copyNodeData.nodeType;
+                pasteNodeData.parent = null;
+                pasteNodeData.pos = copyNodeData.pos;
+                pasteNodeData.hWeight = 0;
+                pasteNodeData.gWeight = float.MaxValue;
+
+                graph.nodeGraph[i][j] = pasteNodeData;
+            }
+        }
+
+        graph.startPos = startPos;
+        graph.startIndex = startIndex;
+        graph.endIndex = endIndex;
+        graph.size = size;
+
+        return graph;
+    }
+
+    public void PushPoolNodeData()
+    {
+        for (int i = 0; i < size.y; i++)
+        {
+            for (int j = 0; j < size.x; j++)
+            {
+                nodePool.PushPool(GetNodeDataByIndex(j, i));
+            }
+        }
     }
 
     public void FillAll()
@@ -89,6 +127,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
 
     public NodeData GetNodeData(int x, int y)
     {
+        Debug.Log($"({x},{y}) ({(x + startIndex.x - startPos.x) % Capacity},{(y + startIndex.y - startPos.y) % Capacity})");
         return nodeGraph[(y + startIndex.y - startPos.y) % Capacity][(x + startIndex.x - startPos.x) % Capacity];
     }
 
@@ -106,30 +145,31 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
         switch (type)
         {
             case AddType.First:
-            {
-                startIndex.x = startIndex.x - 1 < 0 ? Capacity - 1 : startIndex.x - 1;
-                startPos.x--;
-                for (int i = 0; i < size.y; i++)
                 {
-                    var nodeData = nodePool.PopPool();
-                    nodeData.pos = new Vector2Int(startPos.x, (i + startIndex.y) % Capacity + startPos.y);
-                    nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodeData;
-                }
+                    startIndex.x = startIndex.x - 1 < 0 ? Capacity - 1 : startIndex.x - 1;
+                    startPos.x--;
+                    for (int i = 0; i < size.y; i++)
+                    {
+                        var nodeData = nodePool.PopPool();
+                        nodeData.pos = new Vector2Int(startPos.x, (i + startIndex.y) % Capacity + startPos.y);
+                        nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodeData;
+                    }
 
-                break;
-            }
+                    break;
+                }
             case AddType.Last:
-            {
-                for (int i = 0; i < size.y; i++)
                 {
-                    var nodeData = nodePool.PopPool();
-                    nodeData.pos = new Vector2Int(startPos.x + size.x, (i + startIndex.y) % Capacity + startPos.y);
-                    nodeGraph[(i + startIndex.y) % Capacity][endIndex.x] = nodeData;
-                }
+                    Debug.Log(startPos.x + size.x);
+                    for (int i = 0; i < size.y; i++)
+                    {
+                        var nodeData = nodePool.PopPool();
+                        nodeData.pos = new Vector2Int(startPos.x + size.x, (i + startIndex.y) % Capacity + startPos.y);
+                        nodeGraph[(i + startIndex.y) % Capacity][endIndex.x] = nodeData;
+                    }
 
-                endIndex.x = (endIndex.x + 1) % Capacity;
-                break;
-            }
+                    endIndex.x = (endIndex.x + 1) % Capacity;
+                    break;
+                }
             default:
                 return;
         }
@@ -144,31 +184,31 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
         switch (type)
         {
             case AddType.First:
-            {
-                startPos.y--;
-
-                startIndex.y = startIndex.y - 1 < 0 ? Capacity - 1 : startIndex.y - 1;
-                for (int i = 0; i < size.x; i++)
                 {
-                    var nodeData = nodePool.PopPool();
-                    nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y);
-                    nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodeData;
-                }
+                    startPos.y--;
 
-                break;
-            }
+                    startIndex.y = startIndex.y - 1 < 0 ? Capacity - 1 : startIndex.y - 1;
+                    for (int i = 0; i < size.x; i++)
+                    {
+                        var nodeData = nodePool.PopPool();
+                        nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y);
+                        nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodeData;
+                    }
+
+                    break;
+                }
             case AddType.Last:
-            {
-                for (int i = 0; i < size.x; i++)
                 {
-                    var nodeData = nodePool.PopPool();
-                    nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y + size.y);
-                    nodeGraph[endIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
-                }
+                    for (int i = 0; i < size.x; i++)
+                    {
+                        var nodeData = nodePool.PopPool();
+                        nodeData.pos = new Vector2Int((i + startIndex.x) % Capacity + startPos.x, startPos.y + size.y);
+                        nodeGraph[endIndex.y][(i + startIndex.x) % Capacity] = nodePool.PopPool();
+                    }
 
-                endIndex.y = (endIndex.y + 1) % Capacity;
-                break;
-            }
+                    endIndex.y = (endIndex.y + 1) % Capacity;
+                    break;
+                }
             default:
                 return;
         }

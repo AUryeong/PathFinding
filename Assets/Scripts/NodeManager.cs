@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class NodeManager : SingletonBehavior<NodeManager>
@@ -10,7 +11,7 @@ public class NodeManager : SingletonBehavior<NodeManager>
     [Header("Value")]
     public bool isPathFinding;
 
-    public Graph graph;
+    public Graph originGraph;
 
     public int visitDelay;
     public int discoveredDelay;
@@ -22,34 +23,52 @@ public class NodeManager : SingletonBehavior<NodeManager>
         isPathFinding = false;
 
         var rect = CameraManager.Instance.screenRectInt;
-        graph = new Graph(Mathf.Max(rect.width + 13, rect.height + 13));
-        graph.FillAll();
+        originGraph = new Graph(Mathf.Max(rect.width + 13, rect.height + 13));
+        originGraph.FillAll();
 
-        paintGraph.Init(graph);
+        paintGraph.Init(originGraph);
         paintGraph.UpdatePaint();
 
         UpdateNodeByCamera();
         ResetPathFinding();
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            var data = originGraph.GetNodeData(-10, -10);
+            data.nodeType = NodeType.End;
+            paintGraph.UpdateUV(-10, -10, data);
+        }
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            var data = originGraph.GetNodeData(-10, -10);
+            data.nodeType = NodeType.Start;
+            paintGraph.UpdateUV(-10, -10, data);
+        }
+    }
+
     public void UpdateNodeByCamera()
     {
+        if (isPathFinding) return;
+
         var rectInt = CameraManager.Instance.screenRectInt;
-        var prevGraphSize = graph.Size;
+        var prevGraphSize = originGraph.Size;
 
-        for (int i = 0; i < graph.StartPos.x - rectInt.x + NODE_CREATE_RANGE; i++)
-            graph.AddX(AddType.First);
+        for (int i = 0; i < originGraph.StartPos.x - rectInt.x + NODE_CREATE_RANGE; i++)
+            originGraph.AddX(AddType.First);
 
-        for (int i = 0; i < rectInt.x + rectInt.width - (graph.StartPos.x + graph.Size.x) + NODE_CREATE_RANGE; i++)
-            graph.AddX(AddType.Last);
+        for (int i = 0; i < rectInt.x + rectInt.width - (originGraph.StartPos.x + originGraph.Size.x) + NODE_CREATE_RANGE; i++)
+            originGraph.AddX(AddType.Last);
 
-        for (int i = 0; i < graph.StartPos.y - rectInt.y + NODE_CREATE_RANGE; i++)
-            graph.AddY(AddType.First);
+        for (int i = 0; i < originGraph.StartPos.y - rectInt.y + NODE_CREATE_RANGE; i++)
+            originGraph.AddY(AddType.First);
 
-        for (int i = 0; i < rectInt.y + rectInt.height - (graph.StartPos.y + graph.Size.y) + NODE_CREATE_RANGE; i++)
-            graph.AddY(AddType.Last);
+        for (int i = 0; i < rectInt.y + rectInt.height - (originGraph.StartPos.y + originGraph.Size.y) + NODE_CREATE_RANGE; i++)
+            originGraph.AddY(AddType.Last);
 
-        if (!prevGraphSize.Equals(graph.Size))
+        if (!prevGraphSize.Equals(originGraph.Size))
             paintGraph.UpdatePaint();
     }
 
@@ -70,12 +89,19 @@ public class NodeManager : SingletonBehavior<NodeManager>
 
         isPathFinding = true;
         paintGraph.ResetLineRenderers();
+        paintGraph.UpdatePaint();
 
         if (startNodeData == null) return;
         if (endNodeData == null) return;
 
         foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
-            pathFinding.StartPathFinding(graph, startNodeData, endNodeData).Forget();
+        {
+            var copyGraph = originGraph.Copy();
+            var copyStartNodeData = copyGraph.GetNodeData(startNodeData.pos.x, startNodeData.pos.y);
+            var copyEndNodeData = copyGraph.GetNodeData(endNodeData.pos.x, endNodeData.pos.y);
+
+            pathFinding.StartPathFinding(copyGraph, copyStartNodeData, copyEndNodeData).Forget();
+        }
     }
 
     public void ResetPathFinding()
@@ -85,21 +111,21 @@ public class NodeManager : SingletonBehavior<NodeManager>
             foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
                 pathFinding?.Stop();
         }
+        isPathFinding = false;
 
-        paintGraph.ResetLineRenderers();
+        UpdateNodeByCamera();
 
-        for (int i = 0; i < graph.Size.y; i++)
+        for (int i = 0; i < originGraph.Size.y; i++)
         {
-            for (int j = 0; j < graph.Size.x; j++)
+            for (int j = 0; j < originGraph.Size.x; j++)
             {
-                var nodeData = graph.GetNodeDataByIndex(j, i);
-                nodeData.stateType = NodeStateType.None;
+                var nodeData = originGraph.GetNodeDataByIndex(j, i);
                 nodeData.gWeight = int.MaxValue;
                 nodeData.parent = null;
             }
         }
 
+        paintGraph.ResetLineRenderers();
         paintGraph.UpdatePaint();
-        isPathFinding = false;
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 public class PaintGraph : MonoBehaviour
 {
     [SerializeField] private LineRenderer originLineRenderer;
-    public Dictionary<PathFinding, LineRenderer> lineRendererDict;
+    private Dictionary<PathFinding, LineRenderer> lineRendererDict;
     private LineRenderer[] lineRenderers;
 
     private Graph graph;
@@ -44,12 +44,15 @@ public class PaintGraph : MonoBehaviour
         textureSize = new Vector2(texture.width / 100f, texture.height / 100f);
     }
 
+    public LineRenderer GetLineRenderer(PathFinding pathFinding)
+    {
+        return lineRendererDict[pathFinding];
+    }
+
     public void ResetLineRenderers()
     {
-        for(int i = 0; i < lineRenderers.Length; i++)
-        {
+        for (int i = 0; i < lineRenderers.Length; i++)
             lineRenderers[i].positionCount = 0;
-        }
     }
 
     public void UpdateUV(int x, int y, NodeData nodeData = null) // 특정 타일 위치만 색깔 다시 그리기
@@ -129,20 +132,7 @@ public class PaintGraph : MonoBehaviour
                 break;
             default:
             case NodeType.None:
-                switch (nodeData.stateType)
-                {
-                    case NodeStateType.Discovered:
-                        SetUV(startIndex, 0, 0);
-                        break;
-                    case NodeStateType.Visited:
-                        SetUV(startIndex, 1, 0);
-                        break;
-                    case NodeStateType.None:
-                    default:
-                        SetUV(startIndex, 1, 2);
-                        break;
-                }
-
+                SetUV(startIndex, 1, 2);
                 break;
         }
     }

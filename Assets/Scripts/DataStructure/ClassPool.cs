@@ -2,6 +2,7 @@
 
 public class ClassPool<T> where T : class, new()
 {
+    private static ClassPool<T> classPools;
     private readonly Stack<T> poolableQueue;
 
     public ClassPool()
@@ -9,14 +10,11 @@ public class ClassPool<T> where T : class, new()
         poolableQueue = new Stack<T>();
     }
 
-    public ClassPool<T> CreatePoolObject(int count = 0)
+    public static ClassPool<T> Get()
     {
-        if (poolableQueue.Count >= count) return this;
-
-        for (int i = 0; i < count - poolableQueue.Count; i++)
-            poolableQueue.Push(new T());
-
-        return this;
+        if (classPools == null)
+            classPools = new ClassPool<T>();
+        return classPools;
     }
 
     public virtual void PushPool(T poolObj)
