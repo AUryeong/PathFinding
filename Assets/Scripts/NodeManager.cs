@@ -47,6 +47,10 @@ public class NodeManager : SingletonBehavior<NodeManager>
             data.nodeType = NodeType.Start;
             paintGraph.UpdateUV(-10, -10, data);
         }
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            originGraph.Print();
+        }
     }
 
     public void UpdateNodeByCamera()
