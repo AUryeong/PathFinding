@@ -12,48 +12,75 @@ public abstract class PathFinding
         new PathFindingDijkstra(),
         new PathFindingAStar()
     };
+    protected NodeManager nodeManager;
+    protected InputManager inputManager;
+
+    protected LineRenderer lineRenderer;
 
     protected CancellationTokenSource cancellation;
-
-    protected NodeManager nodeManager;
-
-    public abstract string Name { get; }
-    public abstract Color Color { get; }
-
     protected Graph nodeGraph;
 
     protected NodeData nodeEndData;
     protected NodeData nodeStartData;
 
-    protected LineRenderer lineRenderer;
+    public abstract string Name { get; }
+    protected abstract Color Color { get; }
 
-    protected bool isFind = false;
+    public PathFinding()
+    {
+        nodeManager = NodeManager.Instance;
+        inputManager = InputManager.Instance;
+    }
 
-    public abstract UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData);
+    public async UniTaskVoid StartPathFinding(Graph graph, NodeData startData, NodeData endData)
+    {
+        nodeGraph = graph;
+
+        nodeStartData = startData;
+        nodeEndData = endData;
+
+        if (lineRenderer == null)
+        {
+            lineRenderer = nodeManager.paintGraph.GetLineRenderer(this);
+            var color = Color;
+            color.a = 0.6f;
+            lineRenderer.material.SetColor("_Color", color);
+        }
+
+        cancellation = new CancellationTokenSource();
+
+        await StartPathFinding();
+
+        cancellation = null;
+        Stop();
+    }
+
+    protected abstract UniTask StartPathFinding();
+
+    protected void ShowPath()
+    {
+        ShowPathTask().Forget();
+    }
+
+    private async UniTaskVoid ShowPathTask()
+    {
+        var nodeData = nodeEndData;
+        lineRenderer.positionCount = 0;
+        while (true)
+        {
+            AddLine(nodeData.pos);
+            await UniTask.Delay(nodeManager.visitDelay);
+
+            if (nodeData == nodeStartData) break;
+            nodeData = nodeData.parent;
+        }
+    }
 
     public virtual void Stop()
     {
-        if (isFind)
-        {
-            var nodeData = nodeEndData;
-            var points = new List<Vector3>();
-            while (true)
-            {
-                points.Add(NodeManager.Instance.TilePosToGetWorldPoint(nodeData.pos));
-                if (nodeData == nodeStartData) break;
-
-                nodeData = nodeData.parent;
-            }
-
-            lineRenderer.positionCount = points.Count;
-            lineRenderer.SetPositions(points.ToArray());
-
-            isFind = false;
-        }
-
         if (nodeGraph != null)
         {
-            nodeGraph.PushPoolNodeData();
+            nodeGraph?.PushPoolNodeData();
             nodeGraph = null;
         }
 
@@ -62,6 +89,12 @@ public abstract class PathFinding
             cancellation.Cancel();
             cancellation.Dispose();
         }
+    }
+
+    protected void AddLine(Vector2Int pos)
+    {
+        lineRenderer.positionCount++;
+        lineRenderer.SetPosition(lineRenderer.positionCount - 1, nodeManager.TilePosToGetWorldPoint(pos));
     }
 
     protected virtual IEnumerable<Vector2Int> GetNeighBor(Vector2Int pos)

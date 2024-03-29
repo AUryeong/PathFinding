@@ -93,9 +93,12 @@ public class NodeManager : SingletonBehavior<NodeManager>
         if (isPathFinding)
         {
             foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
-                pathFinding?.Stop();
+            {
+                pathFinding.Stop();
+            }
+
+            isPathFinding = false;
         }
-        isPathFinding = false;
 
         UpdateNodeByCamera();
 

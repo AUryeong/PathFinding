@@ -6,8 +6,7 @@ using UnityEngine;
 public class PathFindingAStar : PathFindingDijkstra
 {
     public override string Name => "A*";
-    private InputManager inputManager;
-    public override Color Color => Color.green;
+    protected override Color Color => Color.green;
 
     protected override async UniTask CheckAndEnqueueNode(NodeData originData, Vector2Int pos)
     {
@@ -31,9 +30,6 @@ public class PathFindingAStar : PathFindingDijkstra
 
     private float GetHeuristicWeight(NodeData nodeData)
     {
-        if (inputManager == null)
-            inputManager = InputManager.Instance;
-
         if (inputManager.heuristicType == HeuristicType.Euclidean)
             return Vector2Int.Distance(nodeData.pos, nodeEndData.pos) * inputManager.weight;
         else

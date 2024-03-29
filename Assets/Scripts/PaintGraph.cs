@@ -26,14 +26,9 @@ public class PaintGraph : MonoBehaviour
         lineRenderers = new LineRenderer[PathFinding.pathFindings.Length];
         for (int i = 0; i < PathFinding.pathFindings.Length; i++)
         {
-            var pathFinding = PathFinding.pathFindings[i];
-
             var lineRenderer = Instantiate(originLineRenderer, originLineRenderer.transform.parent);
-            lineRenderer.startColor = pathFinding.Color;
-            lineRenderer.endColor = pathFinding.Color;
-
             lineRenderers[i] = lineRenderer;
-            lineRendererDict.Add(pathFinding, lineRenderer);
+            lineRendererDict.Add(PathFinding.pathFindings[i], lineRenderer);
         }
 
         meshFilter = GetComponent<MeshFilter>();

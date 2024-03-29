@@ -14,6 +14,7 @@ public class InputManager : SingletonBehavior<InputManager>
     private NodeType selectNodeType = NodeType.Wall;
     private List<PathFinding> selectPathFindings;
 
+    [Header("Value")]
     public HeuristicType heuristicType = HeuristicType.Euclidean;
     public int weight = 1;
 
@@ -149,7 +150,7 @@ public class InputManager : SingletonBehavior<InputManager>
                 {
                     var prevData = NodeManager.Instance.startNodeData;
                     prevData.nodeType = NodeType.None;
-                    NodeManager.Instance.paintGraph.UpdateUV(prevData.pos.x, prevData.pos.y, prevData);
+                    NodeManager.Instance.paintGraph.UpdateUV(prevData.pos.x, prevData.pos.y);
                 }
 
                 NodeManager.Instance.startNodeData = nodeData;
@@ -159,7 +160,7 @@ public class InputManager : SingletonBehavior<InputManager>
                 {
                     var prevData = NodeManager.Instance.endNodeData;
                     prevData.nodeType = NodeType.None;
-                    NodeManager.Instance.paintGraph.UpdateUV(prevData.pos.x, prevData.pos.y, prevData);
+                    NodeManager.Instance.paintGraph.UpdateUV(prevData.pos.x, prevData.pos.y);
                 }
 
                 NodeManager.Instance.endNodeData = nodeData;
