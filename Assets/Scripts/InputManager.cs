@@ -15,7 +15,7 @@ public class InputManager : SingletonBehavior<InputManager>
     private List<PathFinding> selectPathFindings;
 
     public HeuristicType heuristicType = HeuristicType.Euclidean;
-    public int weight = 10;
+    public int weight = 1;
 
     [Header("Left UI")]
     [SerializeField] private Button[] paletteButtons;
@@ -80,9 +80,11 @@ public class InputManager : SingletonBehavior<InputManager>
         visitDelayInput.onValueChanged.RemoveAllListeners();
         visitDelayInput.onValueChanged.AddListener(ChangeVisitDelay);
 
+        weightInput.text = weight.ToString();
         weightInput.onValueChanged.RemoveAllListeners();
         weightInput.onValueChanged.AddListener((value) => weight = int.Parse(value));
 
+        dropDown.value =(int)heuristicType;
         dropDown.onValueChanged.RemoveAllListeners();
         dropDown.onValueChanged.AddListener((value) => heuristicType = (HeuristicType)value);
     }

@@ -33,26 +33,6 @@ public class NodeManager : SingletonBehavior<NodeManager>
         ResetPathFinding();
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            var data = originGraph.GetNodeData(-10, -10);
-            data.nodeType = NodeType.End;
-            paintGraph.UpdateUV(-10, -10, data);
-        }
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            var data = originGraph.GetNodeData(-10, -10);
-            data.nodeType = NodeType.Start;
-            paintGraph.UpdateUV(-10, -10, data);
-        }
-        if (Input.GetKeyDown(KeyCode.H))
-        {
-            originGraph.Print();
-        }
-    }
-
     public void UpdateNodeByCamera()
     {
         if (isPathFinding) return;
