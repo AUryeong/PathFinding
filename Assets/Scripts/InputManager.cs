@@ -6,7 +6,8 @@ using UnityEngine.UI;
 public enum HeuristicType
 {
     Euclidean,
-    Manhattan
+    Manhattan,
+    ChebyShev
 }
 
 public class InputManager : SingletonBehavior<InputManager>

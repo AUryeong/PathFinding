@@ -30,9 +30,20 @@ public class PathFindingAStar : PathFindingDijkstra
 
     private float GetHeuristicWeight(NodeData nodeData)
     {
-        if (inputManager.heuristicType == HeuristicType.Euclidean)
-            return Vector2Int.Distance(nodeData.pos, nodeEndData.pos) * inputManager.weight;
-        else
-            return (Mathf.Abs(nodeData.pos.x - nodeEndData.pos.x) + Mathf.Abs(nodeData.pos.y - nodeEndData.pos.y)) * inputManager.weight;
+        float weight;
+        switch (inputManager.heuristicType)
+        {
+            default:
+            case HeuristicType.Euclidean:
+                weight = Vector2Int.Distance(nodeData.pos, nodeEndData.pos);
+                break;
+            case HeuristicType.Manhattan:
+                weight = Mathf.Abs(nodeData.pos.x - nodeEndData.pos.x) + Mathf.Abs(nodeData.pos.y - nodeEndData.pos.y);
+                break;
+            case HeuristicType.ChebyShev:
+                weight = Mathf.Max(nodeData.pos.x - nodeEndData.pos.x, nodeData.pos.y - nodeEndData.pos.y);
+                break;
+        }
+        return weight * inputManager.weight;
     }
 }
