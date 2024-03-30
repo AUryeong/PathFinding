@@ -5,7 +5,7 @@ using UnityEngine;
 public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
 {
     private NodeData[][] nodeGraph;
-    private ClassPool<NodeData> nodePool;
+    private NodeDataPool nodePool;
 
     public int Capacity
     {
@@ -54,7 +54,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
         endIndex = Vector2Int.zero;
         startPos = Vector2Int.zero;
 
-        nodePool = ClassPool<NodeData>.Get();
+        nodePool = NodeDataPool.Get();
     }
 
     public Graph Copy()
@@ -69,10 +69,10 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
 
                 var pasteNodeData = nodePool.PopPool();
 
-                pasteNodeData.parent = copyNodeData.parent;
                 pasteNodeData.nodeType = copyNodeData.nodeType;
-                pasteNodeData.parent = null;
                 pasteNodeData.pos = copyNodeData.pos;
+                
+                pasteNodeData.parent = null;
                 pasteNodeData.hWeight = 0;
                 pasteNodeData.gWeight = float.MaxValue;
 

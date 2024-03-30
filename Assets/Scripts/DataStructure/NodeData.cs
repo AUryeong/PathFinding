@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class NodeData
 {
@@ -8,9 +7,19 @@ public class NodeData
     public Vector2Int pos;
     public NodeData parent;
 
+    public Vector2Int direction;
+
     public float Weight => gWeight + hWeight;
-    public float gWeight = float.MaxValue;
-    public float hWeight = 0;
+    public float gWeight;
+    public float hWeight;
+
+    public void Reset()
+    {
+        parent = null;
+        
+        gWeight = float.MaxValue;
+        hWeight = 0;
+    }
 }
 
 public enum NodeType
