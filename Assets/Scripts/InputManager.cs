@@ -7,7 +7,8 @@ public enum HeuristicType
 {
     Euclidean,
     Manhattan,
-    ChebyShev
+    ChebyShev,
+    Max
 }
 
 public class InputManager : SingletonBehavior<InputManager>
@@ -39,7 +40,7 @@ public class InputManager : SingletonBehavior<InputManager>
 
     public override void Init()
     {
-        selectPathFindings = new List<PathFinding>(PathFinding.pathFindings.Length);
+        selectPathFindings = new List<PathFinding>(PathFinding.PATH_FINDINGS.Length);
 
         for (int i = 0; i < (int)NodeType.End; i++)
         {
@@ -50,14 +51,14 @@ public class InputManager : SingletonBehavior<InputManager>
             button.onClick.AddListener(() => ChangePalette(paletteType));
         }
 
-        for (int i = 0; i < PathFinding.pathFindings.Length; i++)
+        for (int i = 0; i < PathFinding.PATH_FINDINGS.Length; i++)
         {
             int index = i;
             var toggle = Instantiate(pathFindingToggle, pathFindingToggle.transform.parent);
 
             toggle.gameObject.SetActive(true);
 
-            toggle.GetComponentInChildren<TextMeshProUGUI>().text = PathFinding.pathFindings[i].Name;
+            toggle.GetComponentInChildren<TextMeshProUGUI>().text = PathFinding.PATH_FINDINGS[i].Name;
 
             toggle.onValueChanged.RemoveAllListeners();
             toggle.onValueChanged.AddListener((value) =>
@@ -86,6 +87,13 @@ public class InputManager : SingletonBehavior<InputManager>
         weightInput.onValueChanged.RemoveAllListeners();
         weightInput.onValueChanged.AddListener((value) => weight = int.Parse(value));
 
+        var heuristicTypes = new List<string>();
+        for (HeuristicType type = 0; type < HeuristicType.Max; type++)
+            heuristicTypes.Add(type.ToString());
+        
+        dropDown.ClearOptions();
+        dropDown.AddOptions(heuristicTypes);
+
         dropDown.value =(int)heuristicType;
         dropDown.onValueChanged.RemoveAllListeners();
         dropDown.onValueChanged.AddListener((value) => heuristicType = (HeuristicType)value);
@@ -96,9 +104,9 @@ public class InputManager : SingletonBehavior<InputManager>
         NodeManager.Instance.ResetPathFinding();
 
         if (isToggle)
-            selectPathFindings.Add(PathFinding.pathFindings[index]);
+            selectPathFindings.Add(PathFinding.PATH_FINDINGS[index]);
         else
-            selectPathFindings.Remove(PathFinding.pathFindings[index]);
+            selectPathFindings.Remove(PathFinding.PATH_FINDINGS[index]);
     }
 
     public List<PathFinding> GetSelectPathFinding()
@@ -113,13 +121,13 @@ public class InputManager : SingletonBehavior<InputManager>
 
     private void ChangeDiscoveredDelay(string text)
     {
-        int delay = int.Parse(text);
+        int.TryParse(text, out int delay);
         NodeManager.Instance.discoveredDelay = delay;
     }
 
     private void ChangeVisitDelay(string text)
     {
-        int delay = int.Parse(text);
+        int.TryParse(text, out int delay);
         NodeManager.Instance.visitDelay = delay;
     }
 

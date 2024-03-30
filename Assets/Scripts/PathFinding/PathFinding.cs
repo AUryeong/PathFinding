@@ -1,32 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public abstract class PathFinding
 {
-    public static readonly PathFinding[] pathFindings =
+    public static readonly PathFinding[] PATH_FINDINGS =
     {
         new PathFindingBFS(),
         new PathFindingDijkstra(),
-        new PathFindingAStar()
+        new PathFindingAStar(),
+        new PathFindingJPS()
     };
-    protected NodeManager nodeManager;
-    protected InputManager inputManager;
+    protected readonly NodeManager nodeManager;
+    protected readonly InputManager inputManager;
 
-    protected LineRenderer lineRenderer;
+    private LineRenderer lineRenderer;
 
     protected CancellationTokenSource cancellation;
     protected Graph nodeGraph;
 
     protected NodeData nodeEndData;
     protected NodeData nodeStartData;
+    private static readonly int COLOR = Shader.PropertyToID("_Color");
 
     public abstract string Name { get; }
     protected abstract Color Color { get; }
 
-    public PathFinding()
+    protected PathFinding()
     {
         nodeManager = NodeManager.Instance;
         inputManager = InputManager.Instance;
@@ -44,7 +46,7 @@ public abstract class PathFinding
             lineRenderer = nodeManager.paintGraph.GetLineRenderer(this);
             var color = Color;
             color.a = 0.6f;
-            lineRenderer.material.SetColor("_Color", color);
+            lineRenderer.material.SetColor(COLOR, color);
         }
 
         cancellation = new CancellationTokenSource();
@@ -97,7 +99,7 @@ public abstract class PathFinding
         lineRenderer.SetPosition(lineRenderer.positionCount - 1, nodeManager.TilePosToGetWorldPoint(pos));
     }
 
-    protected virtual IEnumerable<Vector2Int> GetNeighBor(Vector2Int pos)
+    protected IEnumerable<Vector2Int> GetNeighBor(Vector2Int pos)
     {
         yield return new Vector2Int(pos.x + 1, pos.y);
         yield return new Vector2Int(pos.x, pos.y - 1);

@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class PathFindingDijkstra : PathFinding
 {
-    protected PriorityQueue nodeDataQueue;
-    private HashSet<NodeData> nodeDataHashSet;
     public override string Name => "Dijkstra";
 
     protected override Color Color => Color.red;
+
+    protected PriorityQueue nodeDataQueue;
+    private HashSet<NodeData> nodeDataHashSet;
 
     public override void Stop()
     {
@@ -17,11 +17,12 @@ public class PathFindingDijkstra : PathFinding
         nodeDataHashSet.Clear();
         nodeDataQueue.Clear();
     }
+
     protected override async UniTask StartPathFinding()
     {
         nodeDataHashSet ??= new HashSet<NodeData>();
         nodeDataQueue ??= new PriorityQueue();
-        
+
         nodeStartData.gWeight = 0;
         nodeEndData.hWeight = 0;
 

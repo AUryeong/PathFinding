@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public abstract class SingletonBehavior<T> : MonoBehaviour where T : MonoBehaviour
 {

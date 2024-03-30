@@ -1,10 +1,9 @@
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class NodeManager : SingletonBehavior<NodeManager>
 {
-    [HideInInspector] public NodeData startNodeData;
-    [HideInInspector] public NodeData endNodeData;
+    public NodeData startNodeData;
+    public NodeData endNodeData;
 
     public PaintGraph paintGraph;
 
@@ -71,12 +70,12 @@ public class NodeManager : SingletonBehavior<NodeManager>
     {
         if (isPathFinding) return;
 
+        if (startNodeData == null) return;
+        if (endNodeData == null) return;
+
         isPathFinding = true;
         paintGraph.ResetLineRenderers();
         paintGraph.UpdatePaint();
-
-        if (startNodeData == null) return;
-        if (endNodeData == null) return;
 
         foreach (var pathFinding in InputManager.Instance.GetSelectPathFinding())
         {
@@ -96,21 +95,19 @@ public class NodeManager : SingletonBehavior<NodeManager>
             {
                 pathFinding.Stop();
             }
-
+            
+            for (int i = 0; i < originGraph.Size.y; i++)
+            {
+                for (int j = 0; j < originGraph.Size.x; j++)
+                {
+                    originGraph.GetNodeDataByIndex(j, i).Reset();
+                }
+            }
             isPathFinding = false;
         }
 
         UpdateNodeByCamera();
 
-        for (int i = 0; i < originGraph.Size.y; i++)
-        {
-            for (int j = 0; j < originGraph.Size.x; j++)
-            {
-                var nodeData = originGraph.GetNodeDataByIndex(j, i);
-                nodeData.gWeight = int.MaxValue;
-                nodeData.parent = null;
-            }
-        }
 
         paintGraph.ResetLineRenderers();
         paintGraph.UpdatePaint();

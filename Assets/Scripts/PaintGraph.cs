@@ -22,13 +22,13 @@ public class PaintGraph : MonoBehaviour
     {
         graph = nodeGraph;
 
-        lineRendererDict = new(PathFinding.pathFindings.Length);
-        lineRenderers = new LineRenderer[PathFinding.pathFindings.Length];
-        for (int i = 0; i < PathFinding.pathFindings.Length; i++)
+        lineRendererDict = new(PathFinding.PATH_FINDINGS.Length);
+        lineRenderers = new LineRenderer[PathFinding.PATH_FINDINGS.Length];
+        for (int i = 0; i < PathFinding.PATH_FINDINGS.Length; i++)
         {
             var lineRenderer = Instantiate(originLineRenderer, originLineRenderer.transform.parent);
             lineRenderers[i] = lineRenderer;
-            lineRendererDict.Add(PathFinding.pathFindings[i], lineRenderer);
+            lineRendererDict.Add(PathFinding.PATH_FINDINGS[i], lineRenderer);
         }
 
         meshFilter = GetComponent<MeshFilter>();

@@ -1,17 +1,17 @@
 ﻿using System;
-using UnityEngine;
 
 public class PriorityQueue
 {
-    private NodeData[] priorityNodes;
+    private WeightNodeData[] priorityNodes;
     private int Capacity => priorityNodes.Length - 1;
 
     public int Size { get; private set; }
-    private int RootIndex => 1;
+    
+    private const int ROOT_INDEX = 1;
 
     public PriorityQueue(int capacity = 10)
     {
-        priorityNodes = new NodeData[capacity + 1];
+        priorityNodes = new WeightNodeData[capacity + 1];
     }
 
     public void Clear()
@@ -26,36 +26,42 @@ public class PriorityQueue
     {
         if (Size >= Capacity)
         {
-            var newArray = new NodeData[Capacity * 2 + 1];
+            var newArray = new WeightNodeData[Capacity * 2 + 1];
             Array.Copy(priorityNodes, 1, newArray, 1, Size);
             priorityNodes = newArray;
         }
+        
+        var weightNodeData = new WeightNodeData()
+        {
+            value = priorityNodeData,
+            weight = priorityNodeData.Weight
+        };
 
         Size++;
-        priorityNodes[Size] = priorityNodeData;
+        priorityNodes[Size] = weightNodeData;
+        
         int index = Size;
 
         while (true)
         {
             int parentNode = index / 2;
             if (parentNode == 0) break;
-            if (priorityNodes[parentNode].Weight <= priorityNodeData.Weight) break;
+            if (priorityNodes[parentNode].weight <= weightNodeData.weight) break;
 
             priorityNodes[index] = priorityNodes[parentNode];
-            priorityNodes[parentNode] = priorityNodeData;
+            priorityNodes[parentNode] = weightNodeData;
             index = parentNode;
         }
     }
 
     public NodeData Dequeue()
     {
-        var priorityNodeData = priorityNodes[Size];
-        var result = priorityNodes[RootIndex];
-        priorityNodes[RootIndex] = priorityNodeData;
+        var weightNodeData = priorityNodes[Size];
+        var result = priorityNodes[ROOT_INDEX];
+        priorityNodes[ROOT_INDEX] = weightNodeData;
         Size--;
 
-        int index = RootIndex;
-
+        int index = ROOT_INDEX;
         while (true)
         {
             int findIndex = index * 2;
@@ -64,17 +70,23 @@ public class PriorityQueue
             int leftChildNodeIndex = findIndex;
             int rightChildNodeIndex = findIndex + 1;
 
-            var leftChildNode = priorityNodes[leftChildNodeIndex];
-            var rightChildNode = priorityNodes[rightChildNodeIndex];
+            var leftChildWeightNodeData = priorityNodes[leftChildNodeIndex];
+            var rightChildWeightNodeData = priorityNodes[rightChildNodeIndex];
 
-            if (leftChildNode.Weight > priorityNodeData.Weight && rightChildNode.Weight > priorityNodeData.Weight) break;
-            int childNodeIndex = leftChildNode.Weight < rightChildNode.Weight ? leftChildNodeIndex : rightChildNodeIndex;
+            if (leftChildWeightNodeData.weight > weightNodeData.weight && rightChildWeightNodeData.weight > weightNodeData.weight) break;
+            int childNodeIndex = leftChildWeightNodeData.weight < rightChildWeightNodeData.weight ? leftChildNodeIndex : rightChildNodeIndex;
 
             priorityNodes[index] = priorityNodes[childNodeIndex];
-            priorityNodes[childNodeIndex] = priorityNodeData;
+            priorityNodes[childNodeIndex] = weightNodeData;
             index = childNodeIndex;
         }
 
-        return result;
+        return result.value;
+    }
+
+    private struct WeightNodeData
+    {
+        public NodeData value;
+        public float weight;
     }
 }
