@@ -99,7 +99,7 @@ public class PathFindingJPS : PathFinding
     }
 
     public override string Name => "JPS";
-    protected override Color Color => Color.blue;
+    protected override Color Color => Color.magenta;
 
     protected PriorityQueue cornerQueue;
 
@@ -150,18 +150,6 @@ public class PathFindingJPS : PathFinding
                 break;
         }
         return weight * inputManager.weight;
-    }
-
-    protected IEnumerable<Vector2Int> GetNeighBor()
-    {
-        yield return new Vector2Int(1, 0);
-        yield return new Vector2Int(1, 1);
-        yield return new Vector2Int(0, 1);
-        yield return new Vector2Int(-1, 1);
-        yield return new Vector2Int(0, -1);
-        yield return new Vector2Int(-1,-1);
-        yield return new Vector2Int(-1, 0);
-        yield return new Vector2Int(1,-1);
     }
 
     private async UniTask CheckFindCornerStraight(NodeData nodeData, NodeData parentNodeData, Vector2Int direction)
