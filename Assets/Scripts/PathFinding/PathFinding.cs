@@ -107,12 +107,12 @@ public abstract class PathFinding
     protected IEnumerable<Vector2Int> GetNeighBor()
     {
         yield return new Vector2Int(1, 0);
-        yield return new Vector2Int(1, 1);
         yield return new Vector2Int(0, 1);
-        yield return new Vector2Int(-1, 1);
         yield return new Vector2Int(0, -1);
-        yield return new Vector2Int(-1,-1);
         yield return new Vector2Int(-1, 0);
+        yield return new Vector2Int(1, 1);
+        yield return new Vector2Int(-1, 1);
+        yield return new Vector2Int(-1,-1);
         yield return new Vector2Int(1,-1);
     }
 }

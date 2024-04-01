@@ -58,7 +58,7 @@ public class PathFindingDijkstra : PathFinding
 
         if (nodeData.nodeType == NodeType.Wall) return;
 
-        float weight = originData.gWeight + 1;
+        float weight = originData.gWeight + GetWeight(originData, nodeData);
         if (nodeData.gWeight > weight)
         {
             nodeData.parent = originData;
@@ -67,5 +67,23 @@ public class PathFindingDijkstra : PathFinding
         }
 
         await UniTask.Delay(nodeManager.discoveredDelay, cancellationToken: cancellation.Token);
+    }
+    protected float GetWeight(NodeData startNodeData, NodeData endNodeData)
+    {
+        float weight;
+        switch (inputManager.heuristicType)
+        {
+            default:
+            case HeuristicType.Euclidean:
+                weight = Vector2Int.Distance(startNodeData.pos, endNodeData.pos);
+                break;
+            case HeuristicType.Manhattan:
+                weight = Mathf.Abs(startNodeData.pos.x - endNodeData.pos.x) + Mathf.Abs(startNodeData.pos.y - endNodeData.pos.y);
+                break;
+            case HeuristicType.ChebyShev:
+                weight = Mathf.Max(startNodeData.pos.x - endNodeData.pos.x, startNodeData.pos.y - endNodeData.pos.y);
+                break;
+        }
+        return weight * inputManager.weight;
     }
 }

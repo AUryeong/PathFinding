@@ -133,7 +133,7 @@ public class PathFindingJPS : PathFinding
         }
     }
 
-    private float GetHeuristicWeight(NodeData startNodeData, NodeData endNodeData)
+    private float GetWeight(NodeData startNodeData, NodeData endNodeData)
     {
         float weight;
         switch (inputManager.heuristicType)
@@ -163,13 +163,13 @@ public class PathFindingJPS : PathFinding
             var findNodeData = nodeGraph.GetNodeData(pos.x, pos.y);
             if (findNodeData == nodeEndData)
             {
-                float weight = parentNodeData.gWeight + GetHeuristicWeight(nodeData, parentNodeData);
+                float weight = parentNodeData.gWeight + GetWeight(nodeData, parentNodeData);
                 if (weight < nodeData.Weight)
                 {
                     nodeData.parent = parentNodeData;
                     nodeData.direction = direction;
                     nodeData.gWeight = weight;
-                    nodeData.hWeight = GetHeuristicWeight(findNodeData, nodeEndData);
+                    nodeData.hWeight = GetWeight(findNodeData, nodeEndData);
                     cornerQueue.Enqueue(nodeData);
                     return;
                 }
@@ -190,13 +190,13 @@ public class PathFindingJPS : PathFinding
                 
                 if (nodeGraph.GetNodeData(blankNodePos.x, blankNodePos.y).nodeType == NodeType.Wall) continue;
 
-                float weight = parentNodeData.gWeight + GetHeuristicWeight(nodeData, parentNodeData);
+                float weight = parentNodeData.gWeight + GetWeight(nodeData, parentNodeData);
                 if (weight < nodeData.Weight)
                 {
                     nodeData.parent = parentNodeData;
                     nodeData.direction = direction;
                     nodeData.gWeight = weight;
-                    nodeData.hWeight = GetHeuristicWeight(findNodeData, nodeEndData);
+                    nodeData.hWeight = GetWeight(findNodeData, nodeEndData);
                     cornerQueue.Enqueue(nodeData);
                 }
             }
@@ -233,13 +233,13 @@ public class PathFindingJPS : PathFinding
                 var blankNodePos = condition.directionBlankPos + pos;
                 if (nodeGraph.GetNodeData(blankNodePos.x, blankNodePos.y).nodeType == NodeType.Wall) continue;
 
-                float weight = parentNodeData.gWeight + GetHeuristicWeight(nodeData, parentNodeData);
+                float weight = parentNodeData.gWeight + GetWeight(nodeData, parentNodeData);
                 if (weight < nodeData.gWeight)
                 {
                     nodeData.parent = parentNodeData;
                     nodeData.gWeight = weight;
                     nodeData.direction = condition.directionBlankPos;
-                    nodeData.hWeight = GetHeuristicWeight(nodeData, nodeEndData);
+                    nodeData.hWeight = GetWeight(nodeData, nodeEndData);
                     cornerQueue.Enqueue(nodeData);
                 }
             }

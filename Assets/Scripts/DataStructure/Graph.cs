@@ -151,6 +151,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                     for (int i = 0; i < size.y; i++)
                     {
                         var nodeData = nodePool.PopPool();
+                        nodeData.nodeType = NodeType.None;
                         nodeData.pos = new Vector2Int(startPos.x, startPos.y + i);
                         nodeGraph[(i + startIndex.y) % Capacity][startIndex.x] = nodeData;
                     }
@@ -161,6 +162,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                     for (int i = 0; i < size.y; i++)
                     {
                         var nodeData = nodePool.PopPool();
+                        nodeData.nodeType = NodeType.None;
                         nodeData.pos = new Vector2Int(startPos.x + size.x, startPos.y+i);
                         nodeGraph[(i + startIndex.y) % Capacity][endIndex.x] = nodeData;
                     }
@@ -189,6 +191,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                     for (int i = 0; i < size.x; i++)
                     {
                         var nodeData = nodePool.PopPool();
+                        nodeData.nodeType = NodeType.None;
                         nodeData.pos = new Vector2Int(startPos.x + i, startPos.y);
                         nodeGraph[startIndex.y][(i + startIndex.x) % Capacity] = nodeData;
                     }
@@ -199,6 +202,7 @@ public class Graph // 앞, 뒤 / 위, 아래 삽입이 자유로워야함
                     for (int i = 0; i < size.x; i++)
                     {
                         var nodeData = nodePool.PopPool();
+                        nodeData.nodeType = NodeType.None;
                         nodeData.pos = new Vector2Int(startPos.x + i, startPos.y + size.y);
                         nodeGraph[endIndex.y][(i + startIndex.x) % Capacity] = nodeData;
                     }
